@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lacework AWS Config Security Audit Integration
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Parameters:
+          - ResourceNamePrefix
+          - ExternalID
+          - LambdaARN
+    ParameterLabels:
+      ResourceNamePrefix:
+        default: Resource name prefix
+      ExternalID:
+        default: ExternalID
+      LambdaARN:
+        default: Lambda in main account
+Parameters:
+  ResourceNamePrefix:
+    Default: lw-prefix
+    Description: Names of resources created by the stack will be prefixed with this value to ensure uniqueness.
+    Type: String
+    MinLength: "1"
+    MaxLength: "45"
+    AllowedPattern: ^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$
+    ConstraintDescription: Invalid resource name prefix.  Must match pattern ^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$
+  ExternalID:
+    Default: A4F9B18
+    Description: The cross-account access role created by the stack will use this value for its ExternalID.
+    Type: String
+    MinLength: "2"
+    MaxLength: "1224"
+    AllowedValues:
+      - A4F9B18
+    ConstraintDescription: Invalid ExternalID value.  Must be equal to 'A4F9B18'
+  LambdaARN:
+    Default: "arn:aws:lambda:us-east-2:950194951070:function:test2-mainaccount-template-LaceworkSetupFunction-7hZY6qokjB1s"
+    Description: ARN of Lambda function that will set up the integration
+    Type: String
+
+Resources:
+  LaceworkCrossAccountAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Join:
+          - '-'
+          - - Ref: ResourceNamePrefix
+            - laceworkcwsrole-sa
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ""
+                  - - 'arn:aws:iam::'
+                    - "434813966438"
+                    - :root
+            Condition:
+              StringEquals:
+                sts:ExternalId:
+                  Ref: ExternalID
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecurityAudit
+  LaceworkCWSPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: LaceworkCWSPolicy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: GetEc2DefaultEncryption
+            Action:
+              - ec2:GetEbsEncryptionByDefault
+            Effect: Allow
+            Resource: '*'
+      Roles:
+        - Ref: LaceworkCrossAccountAccessRole
+  #Will I need this Resource if I'm using Lamda + Nix code to call the integration?
+  #LaceworkSnsCustomResource:
+  #  Type: Custom::LaceworkSnsCustomResource
+  #  DependsOn:
+  #    - LaceworkCWSPolicy
+  #    - LaceworkCrossAccountAccessRole
+  #  Properties:
+  #    Type: AWS_CFG
+  #    ServiceToken:
+  #      Fn::Join:
+  #        - ""
+  #        - - 'arn:aws:sns:'
+  #          - Ref: AWS::Region
+  #          - :434813966438:prodn-customer-cloudformation
+  #    IntegrationName:
+  #      Ref: AWS::StackName
+  #    RoleArn:
+  #      Fn::GetAtt:
+  #        - LaceworkCrossAccountAccessRole
+  #        - Arn
+  #    ExternalId:
+  #      Ref: ExternalID
+  #    #These need to be able to be substituted, right? Or do I even need this resource? 
+  #    ApiToken: 4E44504BB910056711E9329AAFD4531D490A75B3227EB6925956661A
+  #    Account: lwinttimfrazier
+  #    TemplateVersion: "1.0"
+  #    AWSAccountId:
+  #      Ref: AWS::AccountId
+  #This will ideally invoke the Lambda function to do the Lacework tenant integration (I think)
+  LaceworkIntegrationInvoke:
+    Type: AWS::CloudFormation::CustomResource
+    Version: "1.0"
+    Properties:
+      #ServiceToken: !GetAtt primer.Arn # I need the Lambda ARN that resides in the main account here - could use a parameter initially
+      ServiceToken: !Ref LambdaARN # I need the Lambda ARN that resides in the main account here - could use a parameter initially
+      RoleArn: 
+        Fn::GetAtt:
+          - LaceworkCrossAccountAccessRole
+          - Arn
+      ExternalId: !Ref ExternalID #I think this should work since it's a parameter
+      AccountId: !Ref 'AWS::AccountId' #This works, right? 
+
+
+Outputs:
+  ExternalID:
+    Description: External ID to share with Lacework AWS Config Security Audit
+    Value:
+      Ref: ExternalID
+  RoleARN:
+    Description: Cross account Role ARN for Lacework AWS Config Security Audit
+    Value:
+      Fn::GetAtt:
+        - LaceworkCrossAccountAccessRole
+        - Arn
+  TemplateVersion:
+    Description: Template version
+    Value: "1.0"
