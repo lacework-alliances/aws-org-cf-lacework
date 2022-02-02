@@ -78,47 +78,18 @@ Resources:
             Resource: '*'
       Roles:
         - Ref: LaceworkCrossAccountAccessRole
-  #Will I need this Resource if I'm using Lamda + Nix code to call the integration?
-  #LaceworkSnsCustomResource:
-  #  Type: Custom::LaceworkSnsCustomResource
-  #  DependsOn:
-  #    - LaceworkCWSPolicy
-  #    - LaceworkCrossAccountAccessRole
-  #  Properties:
-  #    Type: AWS_CFG
-  #    ServiceToken:
-  #      Fn::Join:
-  #        - ""
-  #        - - 'arn:aws:sns:'
-  #          - Ref: AWS::Region
-  #          - :434813966438:prodn-customer-cloudformation
-  #    IntegrationName:
-  #      Ref: AWS::StackName
-  #    RoleArn:
-  #      Fn::GetAtt:
-  #        - LaceworkCrossAccountAccessRole
-  #        - Arn
-  #    ExternalId:
-  #      Ref: ExternalID
-  #    #These need to be able to be substituted, right? Or do I even need this resource? 
-  #    ApiToken: 4E44504BB910056711E9329AAFD4531D490A75B3227EB6925956661A
-  #    Account: lwinttimfrazier
-  #    TemplateVersion: "1.0"
-  #    AWSAccountId:
-  #      Ref: AWS::AccountId
-  #This will ideally invoke the Lambda function to do the Lacework tenant integration (I think)
+  
   LaceworkIntegrationInvoke:
     Type: AWS::CloudFormation::CustomResource
     Version: "1.0"
     Properties:
-      #ServiceToken: !GetAtt primer.Arn # I need the Lambda ARN that resides in the main account here - could use a parameter initially
-      ServiceToken: !Ref LambdaARN # I need the Lambda ARN that resides in the main account here - could use a parameter initially
+      ServiceToken: !Ref LambdaARN 
       RoleArn: 
         Fn::GetAtt:
           - LaceworkCrossAccountAccessRole
           - Arn
-      ExternalId: !Ref ExternalID #I think this should work since it's a parameter
-      AccountId: !Ref 'AWS::AccountId' #This works, right? 
+      ExternalId: !Ref ExternalID 
+      AccountId: !Ref 'AWS::AccountId' 
 
 
 Outputs:

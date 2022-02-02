@@ -12,10 +12,8 @@ Metadata:
           - LaceworkSubAccountName
           - LaceworkAccessKeyID
           - LaceworkSecretKey
-      - Label:
-          default: "Lambda Function"
-        Parameters:
-          - NamePrefix
+          - OrganizationalUnit
+          - ResourceNamePrefix
       - Label:
           default: "Advanced Configuration"
         Parameters:
@@ -32,8 +30,10 @@ Metadata:
         default: Lacework Access Key ID
       LaceworkSecretKey:
         default: Lacework Secret Key
-      NamePrefix:
-        default: Prefix for the Lambda Function name
+      OrganizationalUnit:
+        default: Organizational Unit ID to deploy stackset into
+      ResourceNamePrefix:
+        default: Prefix for resources created by the stackset
       S3BucketName:
         default: Cloudformation S3 Bucket
       S3KeyPrefix:
@@ -48,7 +48,7 @@ Parameters:
     MaxLength: 1224
   LaceworkAccount:
     Type: String
-    Default: 'lwinttimfrazier'
+    Default: ''
     Description: "Enter your Lacework account name. Do not include the '.lacework.net' at the end."
     MinLength: '1'
   LaceworkSubAccountName:
@@ -58,24 +58,30 @@ Parameters:
     ConstraintDescription: "Invalid Lacework account name entered. The account name may contain alphanumeric characters and dashes only."
   LaceworkAccessKeyID:
     Type: String
-    Default: 'LWINTTIM_F65FEE06A1948E058C6E21C78F74F70579F42D6C83CA67B'
+    Default: ''
     MinLength: '1'
     AllowedPattern: '^[-a-zA-Z0-9_]*$'
     ConstraintDescription: "The Lacework API Access Key ID contains alphanumeric characters and symbols only."
     Description: "Enter the Lacework API Secret Key ID. See https://support.lacework.com/hc/en-us/articles/360011403853-Generate-API-Access-Keys-and-Tokens."
   LaceworkSecretKey:
     Type: String
-    Default: '_3fa114af730aa586733c3a02c502e7a7'
+    Default: ''
     NoEcho: true
     MinLength: '1'
     AllowedPattern: '^[a-zA-Z0-9_]*$'
     ConstraintDescription: "The Lacework API Secret Key contains alphanumeric characters and symbols only."
     Description: "Enter the Lacework API Secret Key. See https://support.lacework.com/hc/en-us/articles/360011403853-Generate-API-Access-Keys-and-Tokens."
-  NamePrefix:
+  OrganizationalUnit:
     Type: String
-    Default: 'lacework-provision'
-    Description: "Names of resources created by the stack will be prefixed with this value to ensure uniqueness."
+    Default: ''
+    Description: "Organization Unit ID that the stackset will be deployed into"
     MinLength: '1'
+    MaxLength: '45'
+  ResourceNamePrefix:
+    Type: String
+    Default: 'lw-stackset-'
+    Description: "Prefix for resources created by Lacework stackset"
+    MinLength: '2'
     MaxLength: '45'
     # advanced
   S3BucketName:
@@ -209,7 +215,6 @@ Resources:
           LW_ACCOUNT: !Ref LaceworkAccount
           LW_SUBACCOUNT: !Ref LaceworkSubAccountName
           ENVIRONMENT: "development"
-          member_account_template: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
       Role: !GetAtt LaceworkSetupFunctionRole.Arn
   LaceworkSetupFunctionRole:
     Type: AWS::IAM::Role
@@ -297,3 +302,23 @@ Resources:
           - Ref: LaceworkSecretKey
           - '","AccessToken": "0"'
           - ',"TokenExpiry": 0 }' 
+
+  LaceworkStackset:
+    Type: AWS::CloudFormation::StackSet
+    Properties:
+      StackSetName: !Sub ${AWS::StackName}
+      PermissionModel: SERVICE_MANAGED
+      AutoDeployment:
+        Enabled: true
+        RetainStacksOnAccountRemoval: false
+      Parameters:
+        - ExternalID: !Select [2, !Split ['/', !Ref AWS::StackId]]
+        - LambdaARN: !GetAtt LaceworkSetupFunction.Arn
+        - ResourceNamePrefix: !Ref ResourceNamePrefix
+      StackInstancesGroup:
+        - Regions:
+          - !Ref AWS::Region
+          DeploymentTargets:
+            OrganizationalUnitIds:
+              - !Ref OrganizationalUnit
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
