@@ -48,7 +48,6 @@ Parameters:
     MaxLength: 1224
   LaceworkAccount:
     Type: String
-    Default: ''
     Description: "Enter your Lacework account name. Do not include the '.lacework.net' at the end."
     MinLength: '1'
   LaceworkSubAccountName:
@@ -58,14 +57,12 @@ Parameters:
     ConstraintDescription: "Invalid Lacework account name entered. The account name may contain alphanumeric characters and dashes only."
   LaceworkAccessKeyID:
     Type: String
-    Default: ''
     MinLength: '1'
     AllowedPattern: '^[-a-zA-Z0-9_]*$'
     ConstraintDescription: "The Lacework API Access Key ID contains alphanumeric characters and symbols only."
     Description: "Enter the Lacework API Secret Key ID. See https://support.lacework.com/hc/en-us/articles/360011403853-Generate-API-Access-Keys-and-Tokens."
   LaceworkSecretKey:
     Type: String
-    Default: ''
     NoEcho: true
     MinLength: '1'
     AllowedPattern: '^[a-zA-Z0-9_]*$'
@@ -73,7 +70,6 @@ Parameters:
     Description: "Enter the Lacework API Secret Key. See https://support.lacework.com/hc/en-us/articles/360011403853-Generate-API-Access-Keys-and-Tokens."
   OrganizationalUnit:
     Type: String
-    Default: ''
     Description: "Organization Unit ID that the stackset will be deployed into"
     MinLength: '1'
     MaxLength: '45'
