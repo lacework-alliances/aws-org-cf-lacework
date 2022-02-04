@@ -6,8 +6,12 @@ Installing Python dependencies
 `pip install --target ./package requests`
 
 Create deployment package and add the lambda function:
-```cd package
+```
+cd package
 zip -r ../LaceworkIntegrationSetup.zip .
 
 cd ..
 zip -g LaceworkIntegrationSetup.zip lw_integration_lambda_function.py
+```
+
+Other comments
