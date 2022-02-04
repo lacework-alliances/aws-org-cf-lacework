@@ -304,7 +304,7 @@ Resources:
           - '","AccessToken": "0"'
           - ',"TokenExpiry": 0 }' 
 
-  LaceworkAccountSNS: # publishing to this SNS topic will trigger the stackset function. this function is called for each new account
+  LaceworkAccountSNS: # publishing to this SNS topic will trigger the Lacework integration Lambda Function
     Type: AWS::SNS::Topic
 
   LaceworkAccountSNSPolicy:
@@ -328,18 +328,6 @@ Resources:
     }'
     Topics:
     - !Ref LaceworkAccountSNS
-    #  Id: LaceworkAccountSNSTopicPolicy
-    #  Version: '2012-10-17'
-    #  Statement:
-    #  - Sid: Allow-within-org
-    #    Effect: Allow
-    #    Principal: "*"
-    #    #  AWS: !GetAtt myuser.Arn
-    #    Action: sns:Publish
-    #    Resource: "*"
-    #    Condition: ForAnyValue:StringLike: 
-
-    
 
   LaceworkAccountSNSLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -355,3 +343,28 @@ Resources:
       Endpoint: !GetAtt LaceworkSetupFunction.Arn
       Protocol: lambda
       TopicArn: !Ref LaceworkAccountSNS
+
+  LaceworkStackset:
+    Type: AWS::CloudFormation::StackSet
+    Properties:
+      StackSetName: !Sub ${AWS::StackName}
+      PermissionModel: SERVICE_MANAGED
+      AutoDeployment:
+        Enabled: true
+        RetainStacksOnAccountRemoval: false
+      Parameters:
+        - ParameterKey: ExternalID
+          ParameterValue: !Select [2, !Split ['/', !Ref AWS::StackId]]
+        #- ParameterKey: LambdaARN
+        #  ParameterValue: !GetAtt LaceworkSetupFunction.Arn
+        - ParameterKey: MainAccountSNS
+          ParameterValue: !Ref LaceworkAccountSNS
+        - ParameterKey: ResourceNamePrefix
+          ParameterValue: !Ref ResourceNamePrefix
+      StackInstancesGroup:
+        - Regions:
+          - !Ref AWS::Region
+          DeploymentTargets:
+            OrganizationalUnitIds:
+              - !Ref OrganizationalUnit
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/lacework-aws-cfg-member.template"
