@@ -10,4 +10,4 @@ Create deployment package and add the lambda function:
 zip -r ../LaceworkIntegrationSetup.zip .
 
 cd ..
-zip -g LaceworkIntegrationSetup.zip lw_integration_lambda_function.py```
+zip -g LaceworkIntegrationSetup.zip lw_integration_lambda_function.py
