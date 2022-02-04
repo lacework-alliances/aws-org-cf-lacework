@@ -7,6 +7,7 @@ Metadata:
           - ResourceNamePrefix
           - ExternalID
           - LambdaARN
+          - MainAccountSNS
     ParameterLabels:
       ResourceNamePrefix:
         default: Resource name prefix
@@ -14,6 +15,8 @@ Metadata:
         default: ExternalID
       LambdaARN:
         default: Lambda in main account
+      MainAccountSNS:
+        default: SNS Topic in main account
 Parameters:
   ResourceNamePrefix:
     Default: lw-prefix
@@ -33,8 +36,12 @@ Parameters:
       - A4F9B18
     ConstraintDescription: Invalid ExternalID value.  Must be equal to 'A4F9B18'
   LambdaARN:
-    Default: "arn:aws:lambda:us-east-2:950194951070:function:test2-mainaccount-template-LaceworkSetupFunction-7hZY6qokjB1s"
+    Default: "arn:aws:lambda:us-east-1:700787859611:function:Org-test-no-stackset-LaceworkSetupFunction-HQxOIOpwA9TN"
     Description: ARN of Lambda function that will set up the integration
+    Type: String
+  MainAccountSNS:
+    Default: "arn:aws:sns:us-east-1:700787859611:LaceworkAccountSNS"
+    Description: ARN of SNS topic that we post to start the integration
     Type: String
 
 Resources:
@@ -79,17 +86,36 @@ Resources:
       Roles:
         - Ref: LaceworkCrossAccountAccessRole
   
-  LaceworkIntegrationInvoke:
-    Type: AWS::CloudFormation::CustomResource
-    Version: "1.0"
+  # Commenting this out to try the SNS route
+  #LaceworkIntegrationInvoke:
+  #  Type: AWS::CloudFormation::CustomResource
+  #  Version: "1.0"
+  #  Properties:
+  #    ServiceToken: !Ref LambdaARN 
+  #    RoleArn: 
+  #      Fn::GetAtt:
+  #        - LaceworkCrossAccountAccessRole
+  #        - Arn
+  #    ExternalId: !Ref ExternalID 
+  #    AccountId: !Ref AWS::AccountId
+
+  LaceworkSnsCustomResource:
+    Type: Custom::LaceworkSnsCustomResource
+    DependsOn:
+      - LaceworkCWSPolicy
+      - LaceworkCrossAccountAccessRole
     Properties:
-      ServiceToken: !Ref LambdaARN 
-      RoleArn: 
+      Type: AWS_CFG
+      ServiceToken: 
+        Ref: MainAccountSNS
+      RoleArn:
         Fn::GetAtt:
           - LaceworkCrossAccountAccessRole
           - Arn
-      ExternalId: !Ref ExternalID 
-      AccountId: !Ref 'AWS::AccountId' 
+      ExternalId:
+        Ref: ExternalID
+      AWSAccountId:
+        Ref: AWS::AccountId
 
 
 Outputs:

@@ -82,7 +82,7 @@ Parameters:
     # advanced
   S3BucketName:
     Type: String
-    Default: lw-account2-open1
+    Default: lw-templates
     MinLength: '1'
     Description: "Enter the S3 bucket for Lacework Control Tower Cloudformation assets. Use this if you want to customize your deployment."
   S3KeyPrefix:
@@ -283,7 +283,12 @@ Resources:
             Resource: "*"
       ManagedPolicyArns:
       - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
-
+  LaceworkSetupFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LaceworkSetupFunction.Arn
+      Principal: cloudformation.amazonaws.com
   LaceworkApiCredentials:
     Type: AWS::SecretsManager::Secret
     Properties:
@@ -299,22 +304,20 @@ Resources:
           - '","AccessToken": "0"'
           - ',"TokenExpiry": 0 }' 
 
-  LaceworkStackset:
-    Type: AWS::CloudFormation::StackSet
+  LaceworkAccountSNS: # publishing to this SNS topic will trigger the stackset function. this function is called for each new account
+    Type: AWS::SNS::Topic
+
+  LaceworkAccountSNSLambdaPermission:
+    Type: AWS::Lambda::Permission
     Properties:
-      StackSetName: !Sub ${AWS::StackName}
-      PermissionModel: SERVICE_MANAGED
-      AutoDeployment:
-        Enabled: true
-        RetainStacksOnAccountRemoval: false
-      Parameters:
-        - ExternalID: !Select [2, !Split ['/', !Ref AWS::StackId]]
-        - LambdaARN: !GetAtt LaceworkSetupFunction.Arn
-        - ResourceNamePrefix: !Ref ResourceNamePrefix
-      StackInstancesGroup:
-        - Regions:
-          - !Ref AWS::Region
-          DeploymentTargets:
-            OrganizationalUnitIds:
-              - !Ref OrganizationalUnit
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LaceworkSetupFunction.Arn
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref LaceworkAccountSNS
+
+  LaceworkAccountSNSSubscription: # stackset function subscribes to new SNS messages
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !GetAtt LaceworkSetupFunction.Arn
+      Protocol: lambda
+      TopicArn: !Ref LaceworkAccountSNS
