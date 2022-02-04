@@ -4,39 +4,50 @@ from botocore.exceptions import ClientError
 import os
 import json
 import cfnresponse
+import ast
 
 # Integration Types (https://<myaccount>.lacework.net/api/v1/external/docs)
 #   AWS_CFG - Amazon Web Services (AWS) Compliance
 
 
 def handler(event, context):
+    if 'Records' in event:
+        for record in event['Records']:
+            event_message = ast.literal_eval(record['Sns']['Message'])
+            print("Message: ")
+            print(event_message)
+            request_type = event_message['RequestType']
+            print(request_type)
+            role_arn = event_message['ResourceProperties']['RoleArn']
+            print(role_arn)
+            external_id = event_message['ResourceProperties']['ExternalId']
+    else:
+        request_type = event['RequestType']
+        role_arn = event['ResourceProperties']['RoleArn']
+        external_id = event['ResourceProperties']['ExternalId']
     
     try:
-        lacework_client = get_lacework_client(event, context)
+        lacework_client = get_lacework_client(event_message, context)
     except Exception as e:
         responseData ={"text": "Unable to create Lacework client",
                         "error": str(e)} 
         print(responseData)
-        cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
-    
-    request_type = event['RequestType']
-    role_arn = event['ResourceProperties']['RoleArn']
-    external_id = event['ResourceProperties']['ExternalId']
+        cfnresponse.send(event_message, context, cfnresponse.FAILED, responseData)
 
     try:
         if request_type == 'Create':
-            return on_create(lacework_client, role_arn, external_id, event, context)
+            return on_create(lacework_client, role_arn, external_id, event_message, context)
         elif request_type == 'Update':
-            return on_update(lacework_client, role_arn, external_id, event, context)
+            return on_update(lacework_client, role_arn, external_id, event_message, context)
         elif request_type == 'Delete':
-            return on_delete(lacework_client, role_arn, event, context)
+            return on_delete(lacework_client, role_arn, event_message, context)
         else:
             raise Exception("Invalid request type: %s" % request_type)
     except Exception as e:
         responseData ={"text": "Generic failure during integration action.",
                         "error": str(e)} 
         print(responseData)
-        cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
+        cfnresponse.send(event_message, context, cfnresponse.FAILED, responseData)
 
 
 def on_create(lacework_client, role_arn, external_id, event, context):

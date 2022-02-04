@@ -6,15 +6,12 @@ Metadata:
       - Parameters:
           - ResourceNamePrefix
           - ExternalID
-          - LambdaARN
           - MainAccountSNS
     ParameterLabels:
       ResourceNamePrefix:
         default: Resource name prefix
       ExternalID:
         default: ExternalID
-      LambdaARN:
-        default: Lambda in main account
       MainAccountSNS:
         default: SNS Topic in main account
 Parameters:
@@ -35,12 +32,8 @@ Parameters:
     AllowedValues:
       - A4F9B18
     ConstraintDescription: Invalid ExternalID value.  Must be equal to 'A4F9B18'
-  LambdaARN:
-    Default: "arn:aws:lambda:us-east-1:700787859611:function:Org-test-no-stackset-LaceworkSetupFunction-HQxOIOpwA9TN"
-    Description: ARN of Lambda function that will set up the integration
-    Type: String
   MainAccountSNS:
-    Default: "arn:aws:sns:us-east-1:700787859611:LaceworkAccountSNS"
+    Default: "arn:aws:sns:us-east-1:700787859611:LW-org-main-LaceworkAccountSNS-134FJNSIL7LGY"
     Description: ARN of SNS topic that we post to start the integration
     Type: String
 
@@ -86,19 +79,6 @@ Resources:
       Roles:
         - Ref: LaceworkCrossAccountAccessRole
   
-  # Commenting this out to try the SNS route
-  #LaceworkIntegrationInvoke:
-  #  Type: AWS::CloudFormation::CustomResource
-  #  Version: "1.0"
-  #  Properties:
-  #    ServiceToken: !Ref LambdaARN 
-  #    RoleArn: 
-  #      Fn::GetAtt:
-  #        - LaceworkCrossAccountAccessRole
-  #        - Arn
-  #    ExternalId: !Ref ExternalID 
-  #    AccountId: !Ref AWS::AccountId
-
   LaceworkSnsCustomResource:
     Type: Custom::LaceworkSnsCustomResource
     DependsOn:
@@ -114,7 +94,7 @@ Resources:
           - Arn
       ExternalId:
         Ref: ExternalID
-      AWSAccountId:
+      AccountId:
         Ref: AWS::AccountId
 
 

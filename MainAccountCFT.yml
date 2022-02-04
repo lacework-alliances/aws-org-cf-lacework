@@ -307,6 +307,40 @@ Resources:
   LaceworkAccountSNS: # publishing to this SNS topic will trigger the stackset function. this function is called for each new account
     Type: AWS::SNS::Topic
 
+  LaceworkAccountSNSPolicy:
+  Type: AWS::SNS::TopicPolicy
+  Properties:
+    PolicyDocument:
+    '{
+      "Version":"2012-10-17",
+      "Statement":{
+        "Sid":"AllowWithinOrg",
+        "Effect":"Allow",
+        "Principal": "*",
+        "Action":"sns:Publish",
+        "Resource":"*",
+        "Condition":{
+          "ForAnyValue:StringLike":{
+            "aws:PrincipalOrgPaths":["o-e07mx5b8dw/*"]
+          }
+        }
+      }
+    }'
+    Topics:
+    - !Ref LaceworkAccountSNS
+    #  Id: LaceworkAccountSNSTopicPolicy
+    #  Version: '2012-10-17'
+    #  Statement:
+    #  - Sid: Allow-within-org
+    #    Effect: Allow
+    #    Principal: "*"
+    #    #  AWS: !GetAtt myuser.Arn
+    #    Action: sns:Publish
+    #    Resource: "*"
+    #    Condition: ForAnyValue:StringLike: 
+
+    
+
   LaceworkAccountSNSLambdaPermission:
     Type: AWS::Lambda::Permission
     Properties:
