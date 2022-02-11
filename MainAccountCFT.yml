@@ -70,12 +70,13 @@ Parameters:
     Description: "Enter the Lacework API Secret Key. See https://support.lacework.com/hc/en-us/articles/360011403853-Generate-API-Access-Keys-and-Tokens."
   OrganizationalUnit:
     Type: String
+    Default: ou-tbl8-ntimldf3
     Description: "Organization Unit ID that the stackset will be deployed into"
     MinLength: '1'
     MaxLength: '45'
   ResourceNamePrefix:
     Type: String
-    Default: 'lw-stackset-'
+    Default: 'lw-stackset'
     Description: "Prefix for resources created by Lacework stackset"
     MinLength: '2'
     MaxLength: '45'
@@ -308,26 +309,23 @@ Resources:
     Type: AWS::SNS::Topic
 
   LaceworkAccountSNSPolicy:
-  Type: AWS::SNS::TopicPolicy
-  Properties:
-    PolicyDocument:
-    '{
-      "Version":"2012-10-17",
-      "Statement":{
-        "Sid":"AllowWithinOrg",
-        "Effect":"Allow",
-        "Principal": "*",
-        "Action":"sns:Publish",
-        "Resource":"*",
-        "Condition":{
-          "ForAnyValue:StringLike":{
-            "aws:PrincipalOrgPaths":["o-e07mx5b8dw/*"]
-          }
-        }
-      }
-    }'
-    Topics:
-    - !Ref LaceworkAccountSNS
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Id: lwSNStopicpolicy
+        Version: '2012-10-17'
+        Statement: 
+        - Sid: AllowWithinOrg
+          Effect: Allow
+          Principal: "*"
+          Action: sns:Publish
+          Resource: "*"
+          Condition: 
+            StringEquals:
+              aws:PrincipalOrgID:
+                - "o-e07mx5b8dw"
+      Topics:
+      - !Ref LaceworkAccountSNS
 
   LaceworkAccountSNSLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -346,15 +344,20 @@ Resources:
 
   LaceworkStackset:
     Type: AWS::CloudFormation::StackSet
+    DependsOn:
+      - LaceworkAccountSNSLambdaPermission
     Properties:
       StackSetName: !Sub ${AWS::StackName}
       PermissionModel: SERVICE_MANAGED
+      Capabilities:
+        - CAPABILITY_NAMED_IAM
       AutoDeployment:
         Enabled: true
         RetainStacksOnAccountRemoval: false
       Parameters:
         - ParameterKey: ExternalID
-          ParameterValue: !Select [2, !Split ['/', !Ref AWS::StackId]]
+          ParameterValue: !Ref ExternalId
+        #  ParameterValue: !Select [2, !Split ['/', !Ref AWS::StackId]]
         #- ParameterKey: LambdaARN
         #  ParameterValue: !GetAtt LaceworkSetupFunction.Arn
         - ParameterKey: MainAccountSNS
