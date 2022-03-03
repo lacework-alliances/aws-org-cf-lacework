@@ -12,6 +12,7 @@ Metadata:
           - LaceworkSubAccountName
           - LaceworkAccessKeyID
           - LaceworkSecretKey
+          - OrganizationID
           - OrganizationalUnit
           - ResourceNamePrefix
       - Label:
@@ -30,6 +31,8 @@ Metadata:
         default: Lacework Access Key ID
       LaceworkSecretKey:
         default: Lacework Secret Key
+      OrganizationID:
+        default: AWS Organization ID where this CF template is being deployed
       OrganizationalUnit:
         default: Organizational Unit ID to deploy stackset into
       ResourceNamePrefix:
@@ -68,9 +71,15 @@ Parameters:
     AllowedPattern: '^[a-zA-Z0-9_]*$'
     ConstraintDescription: "The Lacework API Secret Key contains alphanumeric characters and symbols only."
     Description: "Enter the Lacework API Secret Key. See https://support.lacework.com/hc/en-us/articles/360011403853-Generate-API-Access-Keys-and-Tokens."
+  OrganizationID:
+    Type: String
+    Description: "AWS Organization ID where these resources are being deployed into"
+    AllowedPattern: '^o-[a-z0-9]{10,32}$'
+    MinLength: '12'
+    MaxLength: '45'
   OrganizationalUnit:
     Type: String
-    Description: "Organization Unit ID that the stackset will be deployed into"
+    Description: "Organizational Unit ID that the stackset will be deployed into"
     MinLength: '1'
     MaxLength: '45'
   ResourceNamePrefix:
@@ -322,7 +331,7 @@ Resources:
           Condition: 
             StringEquals:
               aws:PrincipalOrgID:
-                - "o-e07mx5b8dw"
+                - !Ref OrganizationID
       Topics:
       - !Ref LaceworkAccountSNS
 
