@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Lacework AWS Config Security Audit Integration
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -24,16 +25,12 @@ Parameters:
     AllowedPattern: ^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$
     ConstraintDescription: Invalid resource name prefix.  Must match pattern ^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$
   ExternalID:
-    Default: A4F9B18
     Description: The cross-account access role created by the stack will use this value for its ExternalID.
     Type: String
     MinLength: "2"
     MaxLength: "1224"
-    AllowedValues:
-      - A4F9B18
-    ConstraintDescription: Invalid ExternalID value.  Must be equal to 'A4F9B18'
+    ConstraintDescription: Invalid ExternalID value.  Must be between 2 and 1224 characters
   MainAccountSNS:
-    Default: "arn:aws:sns:us-east-1:700787859611:LW-org-main-LaceworkAccountSNS-134FJNSIL7LGY"
     Description: ARN of SNS topic that we post to start the integration
     Type: String
 
@@ -86,8 +83,7 @@ Resources:
       - LaceworkCrossAccountAccessRole
     Properties:
       Type: AWS_CFG
-      ServiceToken: 
-        Ref: MainAccountSNS
+      ServiceToken: !Ref MainAccountSNS
       RoleArn:
         Fn::GetAtt:
           - LaceworkCrossAccountAccessRole
