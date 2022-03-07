@@ -22,9 +22,9 @@ Metadata:
           - S3KeyPrefix
     ParameterLabels:
       ExternalId:
-        default: External ID  
+        default: External ID
       LaceworkAccount:
-        default: "Your Lacework Account (do not include '.lacework.net')"
+        default: Lacework Account (do not include '.lacework.net')
       LaceworkSubAccountName:
         default: Lacework Sub-Account Name
       LaceworkAccessKeyID:
@@ -32,15 +32,15 @@ Metadata:
       LaceworkSecretKey:
         default: Lacework Secret Key
       OrganizationID:
-        default: AWS Organization ID where this CF template is being deployed
+        default: AWS Organization ID in which this CloudFormation template is being deployed
       OrganizationalUnit:
-        default: Organizational Unit ID to deploy stackset into
+        default: Organizational Unit ID in which to deploy the StackSet
       ResourceNamePrefix:
-        default: Prefix for resources created by the stackset
+        default: Prefix for resources created by the StackSet
       S3BucketName:
-        default: Cloudformation S3 Bucket
+        default: S3 Bucket for CloudFormation resources
       S3KeyPrefix:
-        default: Cloudformation S3 Key Prefix
+        default: S3 Key Prefix for CloudFormation resources
 
 Parameters:
   ExternalId:
@@ -93,12 +93,12 @@ Parameters:
     Type: String
     Default: lw-templates
     MinLength: '1'
-    Description: "Enter the S3 bucket for Lacework Control Tower Cloudformation assets. Use this if you want to customize your deployment."
+    Description: "Enter the S3 bucket for Lacework Cloudformation assets. Use this if you want to customize your deployment."
   S3KeyPrefix:
     Type: String
     Default: lacework-organization-cfn
     MinLength: '1'
-    Description: "Enter the S3 key prefix for Lacework Control Tower Cloudformation assets directory. Use this if you want to customize your deployment."
+    Description: "Enter the S3 key prefix for Lacework Cloudformation assets directory. Use this if you want to customize your deployment."
 
 Resources:
   LambdaZipsBucket:
@@ -112,8 +112,8 @@ Resources:
       SourceBucket: !Ref 'S3BucketName'
       Prefix: !Ref 'S3KeyPrefix'
       Objects:
-        - '/LaceworkIntegrationSetup.zip'
-  
+        - '/lambda/LaceworkIntegrationSetup.zip'
+
   CopyZipsRole:
     Type: AWS::IAM::Role
     Properties:
@@ -211,7 +211,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: !Ref LambdaZipsBucket
-        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/LaceworkIntegrationSetup.zip']]
+        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup.zip']]
       Handler: lw_integration_lambda_function.handler
       Runtime: python3.7
       Timeout: 900
@@ -219,7 +219,7 @@ Resources:
         Variables:
           LW_ACCOUNT: !Ref LaceworkAccount
           LW_SUBACCOUNT: !Ref LaceworkSubAccountName
-          ENVIRONMENT: "development"
+          LW_INT_PREFIX: "AWS"
       Role: !GetAtt LaceworkSetupFunctionRole.Arn
   LaceworkSetupFunctionRole:
     Type: AWS::IAM::Role
@@ -365,9 +365,6 @@ Resources:
       Parameters:
         - ParameterKey: ExternalID
           ParameterValue: !Ref ExternalId
-        #  ParameterValue: !Select [2, !Split ['/', !Ref AWS::StackId]]
-        #- ParameterKey: LambdaARN
-        #  ParameterValue: !GetAtt LaceworkSetupFunction.Arn
         - ParameterKey: MainAccountSNS
           ParameterValue: !Ref LaceworkAccountSNS
         - ParameterKey: ResourceNamePrefix
@@ -378,7 +375,7 @@ Resources:
           DeploymentTargets:
             OrganizationalUnitIds:
               - !Ref OrganizationalUnit
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/lacework-aws-cfg-member.template"
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
 
 Outputs:
   ExternalID:

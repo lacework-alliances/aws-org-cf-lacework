@@ -93,7 +93,6 @@ Resources:
       AccountId:
         Ref: AWS::AccountId
 
-
 Outputs:
   ExternalID:
     Description: External ID to share with Lacework AWS Config Security Audit
