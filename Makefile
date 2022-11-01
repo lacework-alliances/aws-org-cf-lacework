@@ -1,10 +1,10 @@
-BUCKET_PREFIX := lw-templates
+BUCKET_PREFIX := lacework-alliances
 KEY_PREFIX := lacework-organization-cfn
 PACKAGES_PREFIX := lambda/
 CFT_PREFIX := templates
 CFT_DIR := templates
 
-PROFILE ?= customerdemo
+PROFILE ?= alliances
 REGION ?= us-east-1
 
 BUCKET_NAME ?= $(BUCKET_PREFIX)
