@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 
 import boto3
 import cfnresponse
@@ -11,9 +12,12 @@ from laceworksdk import LaceworkClient
 # Integration Types (https://<myaccount>.lacework.net/api/v1/external/docs)
 #   AWS_CFG - Amazon Web Services (AWS) Compliance
 
-LOGLEVEL = os.environ.get('LOGLEVEL', logging.INFO)
-logger = logging.getLogger()
-logger.setLevel(LOGLEVEL)
+
+logging.basicConfig(
+    format='%(asctime)s %(name)s [%(levelname)s] %(message)s'
+)
+logger = logging.getLogger('lacework-integration-setup')
+logger.setLevel(os.getenv('LOG_LEVEL', logging.INFO))
 
 
 def handler(event, context):
@@ -25,22 +29,22 @@ def handler(event, context):
     role_arn = event_message['ResourceProperties']['RoleArn']
     external_id = event_message['ResourceProperties']['ExternalId']
 
-    logger.info(f'Request Type: {request_type}')
-    logger.info(f'Role ARN: {role_arn}')
+    logger.info('Request Type: %s', request_type)
+    logger.info('Role ARN: %s', role_arn)
 
     lacework_client = get_lacework_client(event_message, context)
 
     try:
         if request_type == 'Create':
-            return on_create(lacework_client, role_arn, external_id, event_message, context)
-        elif request_type == 'Update':
-            return on_update(lacework_client, role_arn, external_id, event_message, context)
-        elif request_type == 'Delete':
-            return on_delete(lacework_client, role_arn, event_message, context)
-        else:
-            raise Exception('Invalid request type: %s' % request_type)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Generic failure during integration action', e)
+            on_create(lacework_client, role_arn, external_id, event_message, context)
+        if request_type == 'Update':
+            on_update(lacework_client, role_arn, external_id, event_message, context)
+        if request_type == 'Delete':
+            on_delete(lacework_client, role_arn, event_message, context)
+
+        raise Exception(f'Invalid request type: {request_type}')
+    except Exception as error:
+        send_cfn_failure(event, context, 'Generic failure during integration action', error)
 
 
 def on_create(lacework_client, role_arn, external_id, event, context):
@@ -65,8 +69,8 @@ def on_create(lacework_client, role_arn, external_id, event, context):
 
         # send response back to cfn template that was created by the new stack
         send_cfn_success(event, context)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Failure during integration creation', e)
+    except Exception as error:
+        send_cfn_failure(event, context, 'Failure during integration creation', error)
 
 
 def on_update(lacework_client, role_arn, external_id, event, context):
@@ -127,19 +131,20 @@ def find_integration(lacework_client, role_arn):
 
 def send_cfn_success(event, context):
     new_account_id = event['ResourceProperties']['AccountId']
-    responseData = {}
-    responseData['data'] = new_account_id
-    cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+    response_data = {}
+    response_data['data'] = new_account_id
+    cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
+    sys.exit()
 
 
 def send_cfn_failure(event, context, message_text, exception=None):
-    responseData = {
+    response_data = {
         'text': message_text,
         'error': str(exception)
     }
-    logger.error(responseData)
-    cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
-    exit()
+    logger.error(response_data)
+    cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
+    sys.exit()
 
 
 def get_lacework_client(event, context):
@@ -157,22 +162,22 @@ def get_lacework_client(event, context):
         get_secret_value_response = client.get_secret_value(
             SecretId=secret_name
         )
-    except ClientError as e:
+    except ClientError as error:
 
-        err_msg = str(e)
+        err_msg = str(error)
 
-        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+        if error.response['Error']['Code'] == 'ResourceNotFoundException':
             err_msg = f'The requested secret {secret_name} was not found'
-        elif e.response['Error']['Code'] == 'InvalidRequestException':
+        elif error.response['Error']['Code'] == 'InvalidRequestException':
             err_msg = f'The request was invalid due to: {err_msg}'
-        elif e.response['Error']['Code'] == 'InvalidParameterException':
+        elif error.response['Error']['Code'] == 'InvalidParameterException':
             err_msg = f'The request had invalid params: {err_msg}'
-        elif e.response['Error']['Code'] == 'DecryptionFailure':
+        elif error.response['Error']['Code'] == 'DecryptionFailure':
             err_msg = f'The secret can\'t be decrypted using the provided KMS key: {err_msg}'
-        elif e.response['Error']['Code'] == 'InternalServiceError':
+        elif error.response['Error']['Code'] == 'InternalServiceError':
             err_msg = f'An error occurred on service side: {err_msg}'
 
-        send_cfn_failure(event, context, err_msg, e)
+        send_cfn_failure(event, context, err_msg, error)
     else:
         # Secrets Manager decrypts the secret value using the associated KMS CMK
         # Depending on whether the secret was a string or binary,
@@ -184,12 +189,12 @@ def get_lacework_client(event, context):
         json_secret_data = json.loads(text_secret_data)
         os.environ['LW_API_KEY'] = json_secret_data['AccessKeyID']
         os.environ['LW_API_SECRET'] = json_secret_data['SecretKey']
-    except Exception as e:
-        send_cfn_failure(event, context, 'Unable to parse secret data stored by CF Template', e)
+    except Exception as error:
+        send_cfn_failure(event, context, 'Unable to parse secret data stored by CF Template', error)
 
     try:
         lw_client = LaceworkClient()
-    except Exception as e:
-        send_cfn_failure(event, context, 'Unable to configure Lacework client', e)
+    except Exception as error:
+        send_cfn_failure(event, context, 'Unable to configure Lacework client', error)
 
     return lw_client
