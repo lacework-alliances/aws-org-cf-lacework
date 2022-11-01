@@ -49,14 +49,14 @@ def on_create(lacework_client, role_arn, external_id, event, context):
     logger.info('Started creating AWS Config integration')
 
     try:
-        lacework_client.integrations.create(
+        lacework_client.cloud_accounts.create(
             name=f'{integtation_prefix}-Config',
-            type='AWS_CFG',
+            type='AwsCfg',
             enabled=1,
             data={
-                'CROSS_ACCOUNT_CREDENTIALS': {
-                    'EXTERNAL_ID': external_id,
-                    'ROLE_ARN': role_arn
+                'crossAccountCredentials': {
+                    'externalId': external_id,
+                    'roleArn': role_arn
                 }
             }
         )
@@ -70,56 +70,59 @@ def on_create(lacework_client, role_arn, external_id, event, context):
 
 
 def on_update(lacework_client, role_arn, external_id, event, context):
-    integration = find_integration(lacework_client, role_arn, event, context)
+    integration = find_integration(lacework_client, role_arn)
 
     logger.info('Started updating AWS Config integration')
 
-    try:
-        lacework_client.integrations.update(
-            guid=integration['INTG_GUID'],
-            name=integration['NAME'],
-            type='AWS_CFG',
-            enabled=integration['ENABLED'],
-            data={
-                'CROSS_ACCOUNT_CREDENTIALS': {
-                    'EXTERNAL_ID': external_id,
-                    'ROLE_ARN': role_arn
+    if integration:
+        try:
+            lacework_client.cloud_accounts.update(
+                guid=integration['intgGuid'],
+                name=integration['name'],
+                type=integration['type'],
+                enabled=integration['enabled'],
+                data={
+                    'crossAccountCredentials': {
+                        'externalId': external_id,
+                        'roleArn': role_arn
+                    }
                 }
-            }
-        )
+            )
 
-        logger.info('Finished updating AWS Config integration')
+            logger.info('Finished updating AWS Config integration')
 
-        # send response back to cfn template that was created by the new stack
-        send_cfn_success(event, context)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Failure during integration update', e)
+            # send response back to cfn template that was created by the new stack
+            send_cfn_success(event, context)
+        except Exception as error:
+            send_cfn_failure(event, context, 'Failure during integration update', error)
+    else:
+        on_create(lacework_client, role_arn, external_id, event, context)
 
 
 def on_delete(lacework_client, role_arn, event, context):
-    integration = find_integration(lacework_client, role_arn, event, context)
+    integration = find_integration(lacework_client, role_arn)
 
-    logger.info(f'Started deleting integration {integration["NAME"]}')
+    logger.info('Started deleting integration %s', integration["name"])
 
     try:
-        lacework_client.integrations.delete(guid=integration['INTG_GUID'])
+        lacework_client.cloud_accounts.delete(guid=integration['intgGuid'])
 
-        logger.info(f'Finished deleting integration {integration["NAME"]}')
+        logger.info('Finished deleting integration %s', integration["name"])
 
         send_cfn_success(event, context)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Failure during integration deletion', e)
+    except Exception as error:
+        send_cfn_failure(event, context, 'Failure during integration deletion', error)
 
 
-def find_integration(lacework_client, role_arn, event, context):
-    integrations = lacework_client.integrations.get()['data']
+def find_integration(lacework_client, role_arn):
+    integrations = lacework_client.cloud_accounts.get()['data']
 
     for integration in integrations:
-        if integration['TYPE'] in ('AWS_CFG'):
-            if (integration['DATA']['CROSS_ACCOUNT_CREDENTIALS']['ROLE_ARN'] == role_arn):
+        if integration['type'] in ('AwsCfg'):
+            if integration['data']['crossAccountCredentials']['roleArn'] == role_arn:
                 return integration
 
-    send_cfn_failure(event, context, f'No existing integration found for role arn: {role_arn}')
+    return None
 
 
 def send_cfn_success(event, context):
