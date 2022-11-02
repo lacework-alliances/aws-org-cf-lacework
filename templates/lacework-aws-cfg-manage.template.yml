@@ -304,6 +304,20 @@ Resources:
       Protocol: lambda
       TopicArn: !Ref LaceworkAccountSNS
 
+  LaceworkStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - LaceworkAccountSNSLambdaPermission
+      - LaceworkAccountSNSSubscription
+      - LaceworkAccountSNSPolicy
+      - LaceworkSetupFunctionPermission
+    Properties:
+      Parameters:
+        ExternalID: !Ref ExternalId
+        MainAccountSNS: !Ref LaceworkAccountSNS
+        ResourceNamePrefix: !Ref ResourceNamePrefix
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
+
   LaceworkStackset:
     Type: AWS::CloudFormation::StackSet
     DependsOn:
