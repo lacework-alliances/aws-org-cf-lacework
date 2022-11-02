@@ -15,6 +15,7 @@ Metadata:
         default: ExternalID
       MainAccountSNS:
         default: SNS Topic in main account
+
 Parameters:
   ResourceNamePrefix:
     Default: lw-prefix

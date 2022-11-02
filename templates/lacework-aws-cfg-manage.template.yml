@@ -221,6 +221,7 @@ Resources:
           LW_SUBACCOUNT: !Ref LaceworkSubAccountName
           LW_INT_PREFIX: "AWS"
       Role: !GetAtt LaceworkSetupFunctionRole.Arn
+
   LaceworkSetupFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -246,12 +247,14 @@ Resources:
               Ref: LaceworkApiCredentials
       ManagedPolicyArns:
       - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+
   LaceworkSetupFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt LaceworkSetupFunction.Arn
       Principal: cloudformation.amazonaws.com
+
   LaceworkApiCredentials:
     Type: AWS::SecretsManager::Secret
     Properties:
