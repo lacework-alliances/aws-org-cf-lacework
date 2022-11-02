@@ -322,6 +322,9 @@ Resources:
     Type: AWS::CloudFormation::StackSet
     DependsOn:
       - LaceworkAccountSNSLambdaPermission
+      - LaceworkAccountSNSSubscription
+      - LaceworkAccountSNSPolicy
+      - LaceworkSetupFunctionPermission
     Properties:
       StackSetName: !Sub ${AWS::StackName}
       PermissionModel: SERVICE_MANAGED
