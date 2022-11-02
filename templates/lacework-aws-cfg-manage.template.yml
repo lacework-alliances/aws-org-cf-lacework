@@ -237,47 +237,6 @@ Resources:
         PolicyDocument:
           Version: 2012-10-17
           Statement:
-          - Sid: AccountStatusCheck
-            Effect: Allow
-            Action:
-              - organizations:DescribeAccount
-            Resource:
-              !Join [ '', [ 'arn:aws:organizations::', !Ref 'AWS::AccountId', ':account/', '*' ,'/','*'] ]
-          - Sid: StackSetInstanceCreate
-            Effect: Allow
-            Action:
-            - cloudformation:CreateStackInstances
-            - cloudformation:ListStackInstances
-            - organizations:DescribeAccount
-            Resource:
-              !Join ['', ['arn:aws:cloudformation:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':stackset/', '*' ]]
-          - Sid: StackSetInstanceDelete
-            Effect: Allow
-            Action:
-            - cloudformation:DeleteStackSet
-            - cloudformation:DeleteStackInstances
-            - cloudformation:DescribeStackSetOperation
-            Resource:
-              !Join ['', ['arn:aws:cloudformation:', !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':stackset/', '*' ]]
-          - Sid: StackSetCreate
-            Effect: Allow
-            Action:
-            - cloudformation:CreateStackSet
-            - cloudformation:DescribeStackSet
-            Resource:
-              !Join ['', ['arn:aws:cloudformation:', '*', ':', '*', ':stackset/Lacework-*' ]]
-          - Sid: S3Ops
-            Effect: Allow
-            Action:
-            - s3:ListBucket
-            - s3:GetObject
-            Resource:
-            - !Join ['',['arn:aws:s3:::', !Ref S3BucketName, '/', !Ref S3KeyPrefix, '*']]
-          - Sid: PassRole
-            Effect: Allow
-            Action:
-            - iam:PassRole
-            Resource: !Join [':', ['arn:aws:iam:', !Ref 'AWS::AccountId', 'role/service-role/AWSControlTowerStackSetRole' ]]
           - Sid: ApiKeySecretRead
             Effect: Allow
             Action:
@@ -285,11 +244,6 @@ Resources:
               - secretsmanager:UpdateSecret
             Resource:
               Ref: LaceworkApiCredentials
-          - Sid: ListAccounts
-            Effect: Allow
-            Action:
-              - organizations:ListAccounts
-            Resource: "*"
       ManagedPolicyArns:
       - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
   LaceworkSetupFunctionPermission:
