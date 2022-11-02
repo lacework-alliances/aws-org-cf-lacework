@@ -332,6 +332,7 @@ Resources:
         - CAPABILITY_NAMED_IAM
       OperationPreferences:
         FailureToleranceCount: 20
+        MaxConcurrentPercentage: 100
       AutoDeployment:
         Enabled: true
         RetainStacksOnAccountRemoval: false
