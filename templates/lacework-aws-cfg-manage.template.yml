@@ -91,7 +91,7 @@ Parameters:
     # advanced
   S3BucketName:
     Type: String
-    Default: lw-templates
+    Default: lacework-alliances
     MinLength: '1'
     Description: "Enter the S3 bucket for Lacework Cloudformation assets. Use this if you want to customize your deployment."
   S3KeyPrefix:
