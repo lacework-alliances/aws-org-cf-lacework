@@ -265,7 +265,7 @@ Resources:
           - '","SecretKey":"'
           - Ref: LaceworkSecretKey
           - '","AccessToken": "0"'
-          - ',"TokenExpiry": 0 }' 
+          - ',"TokenExpiry": 0 }'
 
   LaceworkAccountSNS: # publishing to this SNS topic will trigger the Lacework integration Lambda Function
     Type: AWS::SNS::Topic
@@ -276,13 +276,13 @@ Resources:
       PolicyDocument:
         Id: lwSNStopicpolicy
         Version: '2012-10-17'
-        Statement: 
+        Statement:
         - Sid: AllowWithinOrg
           Effect: Allow
           Principal: "*"
           Action: sns:Publish
           Resource: "*"
-          Condition: 
+          Condition:
             StringEquals:
               aws:PrincipalOrgID:
                 - !Ref OrganizationID
