@@ -8,12 +8,11 @@ import cfnresponse
 from botocore.exceptions import ClientError
 from laceworksdk import LaceworkClient
 
-# Integration Types (https://<myaccount>.lacework.net/api/v1/external/docs)
-#   AWS_CFG - Amazon Web Services (AWS) Compliance
-
-LOGLEVEL = os.environ.get('LOGLEVEL', logging.INFO)
-logger = logging.getLogger()
-logger.setLevel(LOGLEVEL)
+logging.basicConfig(
+    format='%(asctime)s %(name)s [%(levelname)s] %(message)s'
+)
+logger = logging.getLogger('lacework-integration-setup')
+logger.setLevel(os.getenv('LOG_LEVEL', logging.INFO))
 
 
 def handler(event, context):
@@ -25,22 +24,22 @@ def handler(event, context):
     role_arn = event_message['ResourceProperties']['RoleArn']
     external_id = event_message['ResourceProperties']['ExternalId']
 
-    logger.info(f'Request Type: {request_type}')
-    logger.info(f'Role ARN: {role_arn}')
+    logger.info('Request Type: %s', request_type)
+    logger.info('Role ARN: %s', role_arn)
 
     lacework_client = get_lacework_client(event_message, context)
 
     try:
         if request_type == 'Create':
-            return on_create(lacework_client, role_arn, external_id, event_message, context)
+            on_create(lacework_client, role_arn, external_id, event_message, context)
         elif request_type == 'Update':
-            return on_update(lacework_client, role_arn, external_id, event_message, context)
+            on_update(lacework_client, role_arn, external_id, event_message, context)
         elif request_type == 'Delete':
-            return on_delete(lacework_client, role_arn, event_message, context)
+            on_delete(lacework_client, role_arn, external_id, event_message, context)
         else:
-            raise Exception('Invalid request type: %s' % request_type)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Generic failure during integration action', e)
+            raise Exception(f'Invalid request type: {request_type}')
+    except Exception as error:
+        send_cfn_failure(event, context, 'Generic failure during integration action', error)
 
 
 def on_create(lacework_client, role_arn, external_id, event, context):
@@ -49,14 +48,14 @@ def on_create(lacework_client, role_arn, external_id, event, context):
     logger.info('Started creating AWS Config integration')
 
     try:
-        lacework_client.integrations.create(
+        lacework_client.cloud_accounts.create(
             name=f'{integtation_prefix}-Config',
-            type='AWS_CFG',
+            type='AwsCfg',
             enabled=1,
             data={
-                'CROSS_ACCOUNT_CREDENTIALS': {
-                    'EXTERNAL_ID': external_id,
-                    'ROLE_ARN': role_arn
+                'crossAccountCredentials': {
+                    'externalId': external_id,
+                    'roleArn': role_arn
                 }
             }
         )
@@ -65,78 +64,89 @@ def on_create(lacework_client, role_arn, external_id, event, context):
 
         # send response back to cfn template that was created by the new stack
         send_cfn_success(event, context)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Failure during integration creation', e)
+    except Exception as error:
+        send_cfn_failure(event, context, 'Failure during integration creation', error)
 
 
 def on_update(lacework_client, role_arn, external_id, event, context):
-    integration = find_integration(lacework_client, role_arn, event, context)
+    old_role_arn = event['OldResourceProperties']['RoleArn']
+    old_external_id = event['OldResourceProperties']['ExternalId']
 
-    logger.info('Started updating AWS Config integration')
+    integration = find_integration(lacework_client, old_role_arn, old_external_id)
 
-    try:
-        lacework_client.integrations.update(
-            guid=integration['INTG_GUID'],
-            name=integration['NAME'],
-            type='AWS_CFG',
-            enabled=integration['ENABLED'],
-            data={
-                'CROSS_ACCOUNT_CREDENTIALS': {
-                    'EXTERNAL_ID': external_id,
-                    'ROLE_ARN': role_arn
+    if integration:
+        logger.info('Started updating AWS Config integration %s', integration['intgGuid'])
+
+        try:
+            lacework_client.cloud_accounts.update(
+                guid=integration['intgGuid'],
+                name=integration['name'],
+                type=integration['type'],
+                enabled=integration['enabled'],
+                data={
+                    'crossAccountCredentials': {
+                        'externalId': external_id,
+                        'roleArn': role_arn
+                    }
                 }
-            }
-        )
+            )
 
-        logger.info('Finished updating AWS Config integration')
+            logger.info('Finished updating AWS Config integration %s', integration['intgGuid'])
 
-        # send response back to cfn template that was created by the new stack
+            # send response back to cfn template that was created by the new stack
+            send_cfn_success(event, context)
+        except Exception as error:
+            send_cfn_failure(event, context, 'Failure during integration update', error)
+    else:
+        logger.info('No existing AWS Config integration was found for the update request.')
         send_cfn_success(event, context)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Failure during integration update', e)
 
 
-def on_delete(lacework_client, role_arn, event, context):
-    integration = find_integration(lacework_client, role_arn, event, context)
+def on_delete(lacework_client, role_arn, external_id, event, context):
+    integration = find_integration(lacework_client, role_arn, external_id)
 
-    logger.info(f'Started deleting integration {integration["NAME"]}')
+    if integration:
+        logger.info('Started deleting AWS Config integration %s', integration['intgGuid'])
 
-    try:
-        lacework_client.integrations.delete(guid=integration['INTG_GUID'])
+        try:
+            lacework_client.cloud_accounts.delete(guid=integration['intgGuid'])
 
-        logger.info(f'Finished deleting integration {integration["NAME"]}')
+            logger.info('Finished deleting AWS Config integration %s', integration['intgGuid'])
 
+            send_cfn_success(event, context)
+        except Exception as error:
+            send_cfn_failure(event, context, 'Failure during integration deletion', error)
+    else:
+        logger.info('No existing AWS Config integration was found for the deletion request.')
         send_cfn_success(event, context)
-    except Exception as e:
-        send_cfn_failure(event, context, 'Failure during integration deletion', e)
 
 
-def find_integration(lacework_client, role_arn, event, context):
-    integrations = lacework_client.integrations.get()['data']
+def find_integration(lacework_client, role_arn, external_id):
+    integrations = lacework_client.cloud_accounts.get_by_type('AwsCfg')['data']
 
     for integration in integrations:
-        if integration['TYPE'] in ('AWS_CFG'):
-            if (integration['DATA']['CROSS_ACCOUNT_CREDENTIALS']['ROLE_ARN'] == role_arn):
+        if integration['type'] in ('AwsCfg'):
+            if (integration['data']['crossAccountCredentials']['roleArn'] == role_arn and
+               integration['data']['crossAccountCredentials']['externalId'] == external_id):
                 return integration
 
-    send_cfn_failure(event, context, f'No existing integration found for role arn: {role_arn}')
+    return None
 
 
 def send_cfn_success(event, context):
     new_account_id = event['ResourceProperties']['AccountId']
-    responseData = {}
-    responseData['data'] = new_account_id
-    cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData)
+    response_data = {}
+    response_data['data'] = new_account_id
+    cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)
 
 
 def send_cfn_failure(event, context, message_text, exception=None):
-    responseData = {
+    response_data = {
         'text': message_text,
         'error': str(exception)
     }
-    logger.error(responseData)
-    cfnresponse.send(event, context, cfnresponse.FAILED, responseData)
-    exit()
+    logger.error(response_data)
+    cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
 
 
 def get_lacework_client(event, context):
@@ -154,22 +164,22 @@ def get_lacework_client(event, context):
         get_secret_value_response = client.get_secret_value(
             SecretId=secret_name
         )
-    except ClientError as e:
+    except ClientError as error:
 
-        err_msg = str(e)
+        err_msg = str(error)
 
-        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+        if error.response['Error']['Code'] == 'ResourceNotFoundException':
             err_msg = f'The requested secret {secret_name} was not found'
-        elif e.response['Error']['Code'] == 'InvalidRequestException':
+        elif error.response['Error']['Code'] == 'InvalidRequestException':
             err_msg = f'The request was invalid due to: {err_msg}'
-        elif e.response['Error']['Code'] == 'InvalidParameterException':
+        elif error.response['Error']['Code'] == 'InvalidParameterException':
             err_msg = f'The request had invalid params: {err_msg}'
-        elif e.response['Error']['Code'] == 'DecryptionFailure':
+        elif error.response['Error']['Code'] == 'DecryptionFailure':
             err_msg = f'The secret can\'t be decrypted using the provided KMS key: {err_msg}'
-        elif e.response['Error']['Code'] == 'InternalServiceError':
+        elif error.response['Error']['Code'] == 'InternalServiceError':
             err_msg = f'An error occurred on service side: {err_msg}'
 
-        send_cfn_failure(event, context, err_msg, e)
+        send_cfn_failure(event, context, err_msg, error)
     else:
         # Secrets Manager decrypts the secret value using the associated KMS CMK
         # Depending on whether the secret was a string or binary,
@@ -181,12 +191,12 @@ def get_lacework_client(event, context):
         json_secret_data = json.loads(text_secret_data)
         os.environ['LW_API_KEY'] = json_secret_data['AccessKeyID']
         os.environ['LW_API_SECRET'] = json_secret_data['SecretKey']
-    except Exception as e:
-        send_cfn_failure(event, context, 'Unable to parse secret data stored by CF Template', e)
+    except Exception as error:
+        send_cfn_failure(event, context, 'Unable to parse secret data stored by CF Template', error)
 
     try:
         lw_client = LaceworkClient()
-    except Exception as e:
-        send_cfn_failure(event, context, 'Unable to configure Lacework client', e)
+    except Exception as error:
+        send_cfn_failure(event, context, 'Unable to configure Lacework client', error)
 
     return lw_client

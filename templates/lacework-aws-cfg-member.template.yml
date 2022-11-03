@@ -15,6 +15,7 @@ Metadata:
         default: ExternalID
       MainAccountSNS:
         default: SNS Topic in main account
+
 Parameters:
   ResourceNamePrefix:
     Default: lw-prefix
@@ -61,6 +62,7 @@ Resources:
                   Ref: ExternalID
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/SecurityAudit
+
   LaceworkCWSPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -73,9 +75,14 @@ Resources:
               - ec2:GetEbsEncryptionByDefault
             Effect: Allow
             Resource: '*'
+          - Sid: GetBucketPublicAccessBlock
+            Action:
+              - s3:GetBucketPublicAccessBlock
+            Effect: Allow
+            Resource: '*'
       Roles:
         - Ref: LaceworkCrossAccountAccessRole
-  
+
   LaceworkSnsCustomResource:
     Type: Custom::LaceworkSnsCustomResource
     DependsOn:
