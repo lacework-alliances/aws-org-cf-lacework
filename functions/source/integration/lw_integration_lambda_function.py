@@ -41,7 +41,7 @@ def handler(event, context):
         elif request_type == 'Update':
             on_update(lacework_client, role_arn, external_id, account_id, event_message, context)
         elif request_type == 'Delete':
-            on_delete(lacework_client, role_arn, external_id, account_id, event_message, context)
+            on_delete(lacework_client, role_arn, external_id, event_message, context)
         else:
             raise Exception(f'Invalid request type: {request_type}')
     except Exception as error:
