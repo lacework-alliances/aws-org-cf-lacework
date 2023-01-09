@@ -80,6 +80,7 @@ def on_create(lacework_client, role_arn, external_id, account_id, event, context
     except ApiError as apiError:
         if 'aws account is already used' in apiError.message:
             logger.warning("Account is already in use. Skipping. %s", apiError)
+            send_cfn_success(event, context)
         else:
             send_cfn_failure(event, context, 'Error from Lacework API', apiError)
     except Exception as error:
