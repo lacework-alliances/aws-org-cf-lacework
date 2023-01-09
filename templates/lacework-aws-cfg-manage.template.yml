@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Input environment variables for Lacework and Lambda function to register with Lacework"
+Description: "Allows for automatic on-boarding/off-boarding of AWS accounts within your Lacework tenant. As new AWS accounts are added/updated/deleted within your AWS organization, the appropriate roles and permissions will be provisioned, and Lacework will be notified of the event. v1.1.0"
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -32,9 +32,9 @@ Metadata:
       LaceworkSecretKey:
         default: Lacework Secret Key
       OrganizationID:
-        default: AWS Organization ID in which this CloudFormation template is being deployed
+        default: AWS Organization ID in which this CloudFormation template is being deployed (format = o-xxxx)
       OrganizationalUnit:
-        default: Organizational Unit ID in which to deploy the StackSet
+        default: Organizational Unit in which to deploy the StackSet (format = ou-xxxx)
       ResourceNamePrefix:
         default: Prefix for resources created by the StackSet
       S3BucketName:
@@ -113,7 +113,7 @@ Resources:
       SourceBucket: !Ref 'S3BucketName'
       Prefix: !Ref 'S3KeyPrefix'
       Objects:
-        - '/lambda/LaceworkIntegrationSetup.zip'
+        - '/lambda/LaceworkIntegrationSetup1.1.0.zip'
 
   CopyZipsRole:
     Type: AWS::IAM::Role
@@ -212,7 +212,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: !Ref LambdaZipsBucket
-        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup.zip']]
+        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup1.1.0.zip']]
       Handler: lw_integration_lambda_function.handler
       Runtime: python3.7
       Timeout: 900

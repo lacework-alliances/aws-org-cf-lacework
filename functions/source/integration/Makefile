@@ -1,7 +1,8 @@
 PROJECT = LaceworkIntegrationSetup
 DIR_NAME = integration
-FUNCTION = $(PROJECT)
+FUNCTION = $(PROJECT)1.1.0
 DIST_DIR ?= "$(BASE)"/functions/packages/$(DIR_NAME)
+HONEY_DATASET = $(DATASET)
 
 all: build
 
@@ -13,7 +14,8 @@ clean:
 
 build: clean
 	mkdir -p build
-	zip -r $(DIST_DIR)/$(FUNCTION).zip . -x "*.DS_Store*" "*.git*" "build*" "Makefile" "requirements.txt"
+	buildid=$$(git describe --all --long | cut -d "/" -f 2); \
+	sed -e "s|\$$BUILD|$$buildid|g" -e "s|\$$DATASET|$(HONEY_DATASET)|g" -e "s|\$$HONEY_KEY|$(HONEY_KEY)|g" lw_integration_lambda_function.py > build/lw_integration_lambda_function.py
 	pip3 install -r requirements.txt -t build
 	cd build; zip -r $(DIST_DIR)/$(FUNCTION).zip . -x "*.DS_Store*" "*.git*" "build*" "Makefile"
 	rm -rf build

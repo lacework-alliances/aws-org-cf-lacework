@@ -3,9 +3,10 @@ KEY_PREFIX := lacework-organization-cfn
 PACKAGES_PREFIX := lambda/
 CFT_PREFIX := templates
 CFT_DIR := templates
+DATASET := lacework-alliances-prod
 
-PROFILE ?= alliances
-REGION ?= us-east-1
+PROFILE ?= ct
+REGION ?= us-west-2
 
 BUCKET_NAME ?= $(BUCKET_PREFIX)
 BASE = $(shell /bin/pwd)
@@ -22,7 +23,7 @@ ZIP_FILES := $(shell find $(ZIP_SUBDIRS) -type f -name '*.zip')
 $(TOPTARGETS): $(SUBDIRS)
 
 $(SUBDIRS):
-	$(MAKE) -C $@ $(MAKECMDGOALS) $(ARGS) BASE="${BASE}"
+	$(MAKE) -C $@ $(MAKECMDGOALS) $(ARGS) BASE="${BASE}" DATASET="${DATASET}"
 
 upload: $(s3_buckets)
 
