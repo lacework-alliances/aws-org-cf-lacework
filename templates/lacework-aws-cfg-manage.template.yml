@@ -113,7 +113,7 @@ Resources:
       SourceBucket: !Ref 'S3BucketName'
       Prefix: !Ref 'S3KeyPrefix'
       Objects:
-        - '/lambda/LaceworkIntegrationSetup1.1.1.zip'
+        - '/lambda/LaceworkIntegrationSetup1.1.2.zip'
 
   CopyZipsRole:
     Type: AWS::IAM::Role
