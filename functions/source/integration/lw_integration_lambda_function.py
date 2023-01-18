@@ -58,7 +58,9 @@ def on_create(lacework_client, role_arn, external_id, account_id, event, context
                          "", get_lacework_environment_variables())
 
     try:
+        logger.info('Giving time for the cross account role to be created')
         time.sleep(300)
+        logger.info('Sending request to add account ID %s to Lacework', account_id)
         lacework_client.cloud_accounts.create(
             name=f'{integration_prefix}-Config',
             type='AwsCfg',
