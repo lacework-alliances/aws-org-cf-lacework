@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 
 import boto3
 import cfnresponse
@@ -57,6 +58,7 @@ def on_create(lacework_client, role_arn, external_id, account_id, event, context
                          "", get_lacework_environment_variables())
 
     try:
+        time.sleep(300)
         lacework_client.cloud_accounts.create(
             name=f'{integration_prefix}-Config',
             type='AwsCfg',

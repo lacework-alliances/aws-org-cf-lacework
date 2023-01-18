@@ -1,6 +1,6 @@
 PROJECT = LaceworkIntegrationSetup
 DIR_NAME = integration
-FUNCTION = $(PROJECT)1.1.1
+FUNCTION = $(PROJECT)1.1.2
 DIST_DIR ?= "$(BASE)"/functions/packages/$(DIR_NAME)
 HONEY_DATASET = $(DATASET)
 
