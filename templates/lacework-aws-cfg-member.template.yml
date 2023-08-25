@@ -50,12 +50,7 @@ Resources:
           - Action: sts:AssumeRole
             Effect: Allow
             Principal:
-              AWS:
-                Fn::Join:
-                  - ""
-                  - - 'arn:aws:iam::'
-                    - "434813966438"
-                    - :root
+              AWS: ["arn:aws:iam::434813966438:role/lacework-platform"]
             Condition:
               StringEquals:
                 sts:ExternalId:

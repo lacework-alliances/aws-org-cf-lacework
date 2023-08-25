@@ -1,11 +1,11 @@
 BUCKET_PREFIX := lacework-alliances
-KEY_PREFIX := lacework-organization-cfn
+KEY_PREFIX := lacework-organization-cfn-role-trust
 PACKAGES_PREFIX := lambda/
 CFT_PREFIX := templates
 CFT_DIR := templates
 DATASET := lacework-alliances-prod
 
-PROFILE ?= ct
+PROFILE ?= default
 REGION ?= us-west-2
 
 BUCKET_NAME ?= $(BUCKET_PREFIX)
