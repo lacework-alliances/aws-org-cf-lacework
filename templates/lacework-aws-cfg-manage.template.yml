@@ -43,12 +43,17 @@ Metadata:
         default: S3 Key Prefix for CloudFormation resources
 
 Parameters:
-  ExternalId:
+  ExternalID:
+    Description: >-
+      The cross-account access role created by the stack will use this value in
+      the ExternalID.
     Type: String
-    Description: The cross-account access role created by the stack will use this value for its ExternalID.
-    MinLength: 2
-    MaxLength: 1224
-    ConstraintDescription: "Invalid External ID entered. Must be between 2 and 1224 characters."
+    MinLength: '10'
+    MaxLength: '10'
+    AllowedPattern: ^[a-zA-Z0-9=,.@:/-]{10}$
+    ConstraintDescription: >-
+      Invalid ExternalID value.  Must match pattern
+      ^[a-zA-Z0-9=,.@:/-]{10}$.  Must be 10 characters long.
   LaceworkAccount:
     Type: String
     Description: "Enter your Lacework account name. Do not include the '.lacework.net' at the end."
@@ -317,7 +322,7 @@ Resources:
       - LaceworkSetupFunctionPermission
     Properties:
       Parameters:
-        ExternalID: !Ref ExternalId
+        ExternalID: !Sub [ 'lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}:${ExternalID}', { LaceworkAccount: !Ref LaceworkAccount, ExternalID: !Ref ExternalID } ]
         MainAccountSNS: !Ref LaceworkAccountSNS
         ResourceNamePrefix: !Ref ResourceNamePrefix
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
@@ -342,7 +347,7 @@ Resources:
         RetainStacksOnAccountRemoval: false
       Parameters:
         - ParameterKey: ExternalID
-          ParameterValue: !Ref ExternalId
+          ParameterValue: !Sub [ 'lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}:${ExternalID}', { LaceworkAccount: !Ref LaceworkAccount, ExternalID: !Ref ExternalID } ]
         - ParameterKey: MainAccountSNS
           ParameterValue: !Ref LaceworkAccountSNS
         - ParameterKey: ResourceNamePrefix
@@ -358,8 +363,7 @@ Resources:
 Outputs:
   ExternalID:
     Description: External ID to share with Lacework AWS Config Security Audit
-    Value:
-      Ref: ExternalId
+    Value: !Sub [ 'lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}:${ExternalID}', { LaceworkAccount: !Ref LaceworkAccount, ExternalID: !Ref ExternalID } ]
   MainAccountSNS:
     Description: SNS topic in this account that all sub-accounts will post to
     Value: !Ref LaceworkAccountSNS
