@@ -7,7 +7,6 @@ Metadata:
       - Label:
           default: "Parameter store values"
         Parameters:
-          - ExternalId
           - LaceworkAccount
           - LaceworkSubAccountName
           - LaceworkAccessKeyID
@@ -21,8 +20,6 @@ Metadata:
           - S3BucketName
           - S3KeyPrefix
     ParameterLabels:
-      ExternalId:
-        default: External ID
       LaceworkAccount:
         default: Lacework Account (do not include '.lacework.net')
       LaceworkSubAccountName:
@@ -43,12 +40,6 @@ Metadata:
         default: S3 Key Prefix for CloudFormation resources
 
 Parameters:
-  ExternalId:
-    Type: String
-    Description: The cross-account access role created by the stack will use this value for its ExternalID.
-    MinLength: 2
-    MaxLength: 1224
-    ConstraintDescription: "Invalid External ID entered. Must be between 2 and 1224 characters."
   LaceworkAccount:
     Type: String
     Description: "Enter your Lacework account name. Do not include the '.lacework.net' at the end."
@@ -97,7 +88,7 @@ Parameters:
     Description: "Enter the S3 bucket for Lacework Cloudformation assets. Use this if you want to customize your deployment."
   S3KeyPrefix:
     Type: String
-    Default: lacework-organization-cfn
+    Default: lacework-organization-cfn-role-trust
     MinLength: '1'
     Description: "Enter the S3 key prefix for Lacework Cloudformation assets directory. Use this if you want to customize your deployment."
 
@@ -152,7 +143,7 @@ Resources:
     Properties:
       Description: Copies objects from the S3 bucket to a new location.
       Handler: index.handler
-      Runtime: python3.7
+      Runtime: python3.9
       Role: !GetAtt 'CopyZipsRole.Arn'
       Timeout: 240
       Code:
@@ -214,7 +205,7 @@ Resources:
         S3Bucket: !Ref LambdaZipsBucket
         S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup1.1.2.zip']]
       Handler: lw_integration_lambda_function.handler
-      Runtime: python3.7
+      Runtime: python3.9
       Timeout: 900
       Environment:
         Variables:
@@ -229,25 +220,25 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Effect: Allow
-          Principal:
-            Service: lambda.amazonaws.com
-          Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
       Path: /
       Policies:
-      - PolicyName: Setup_Operations
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-          - Sid: ApiKeySecretRead
-            Effect: Allow
-            Action:
-              - secretsmanager:GetSecretValue
-              - secretsmanager:UpdateSecret
-            Resource:
-              Ref: LaceworkApiCredentials
+        - PolicyName: Setup_Operations
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: ApiKeySecretRead
+                Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:UpdateSecret
+                Resource:
+                  Ref: LaceworkApiCredentials
       ManagedPolicyArns:
-      - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
 
   LaceworkSetupFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -263,13 +254,13 @@ Resources:
       Name: LaceworkApiCredentials
       SecretString:
         Fn::Join:
-        - ''
-        - - '{"AccessKeyID":"'
-          - Ref: LaceworkAccessKeyID
-          - '","SecretKey":"'
-          - Ref: LaceworkSecretKey
-          - '","AccessToken": "0"'
-          - ',"TokenExpiry": 0 }'
+          - ''
+          - - '{"AccessKeyID":"'
+            - Ref: LaceworkAccessKeyID
+            - '","SecretKey":"'
+            - Ref: LaceworkSecretKey
+            - '","AccessToken": "0"'
+            - ',"TokenExpiry": 0 }'
 
   LaceworkAccountSNS: # publishing to this SNS topic will trigger the Lacework integration Lambda Function
     Type: AWS::SNS::Topic
@@ -281,17 +272,17 @@ Resources:
         Id: lwSNStopicpolicy
         Version: '2012-10-17'
         Statement:
-        - Sid: AllowWithinOrg
-          Effect: Allow
-          Principal: "*"
-          Action: sns:Publish
-          Resource: "*"
-          Condition:
-            StringEquals:
-              aws:PrincipalOrgID:
-                - !Ref OrganizationID
+          - Sid: AllowWithinOrg
+            Effect: Allow
+            Principal: "*"
+            Action: sns:Publish
+            Resource: "*"
+            Condition:
+              StringEquals:
+                aws:PrincipalOrgID:
+                  - !Ref OrganizationID
       Topics:
-      - !Ref LaceworkAccountSNS
+        - !Ref LaceworkAccountSNS
 
   LaceworkAccountSNSLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -307,20 +298,6 @@ Resources:
       Endpoint: !GetAtt LaceworkSetupFunction.Arn
       Protocol: lambda
       TopicArn: !Ref LaceworkAccountSNS
-
-  LaceworkStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn:
-      - LaceworkAccountSNSLambdaPermission
-      - LaceworkAccountSNSSubscription
-      - LaceworkAccountSNSPolicy
-      - LaceworkSetupFunctionPermission
-    Properties:
-      Parameters:
-        ExternalID: !Ref ExternalId
-        MainAccountSNS: !Ref LaceworkAccountSNS
-        ResourceNamePrefix: !Ref ResourceNamePrefix
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
 
   LaceworkStackset:
     Type: AWS::CloudFormation::StackSet
@@ -342,24 +319,15 @@ Resources:
         RetainStacksOnAccountRemoval: false
       Parameters:
         - ParameterKey: ExternalID
-          ParameterValue: !Ref ExternalId
+          ParameterValue: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Select [ 4, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]
         - ParameterKey: MainAccountSNS
           ParameterValue: !Ref LaceworkAccountSNS
         - ParameterKey: ResourceNamePrefix
           ParameterValue: !Ref ResourceNamePrefix
       StackInstancesGroup:
         - Regions:
-          - !Ref AWS::Region
+            - !Ref AWS::Region
           DeploymentTargets:
             OrganizationalUnitIds:
               - !Ref OrganizationalUnit
       TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
-
-Outputs:
-  ExternalID:
-    Description: External ID to share with Lacework AWS Config Security Audit
-    Value:
-      Ref: ExternalId
-  MainAccountSNS:
-    Description: SNS topic in this account that all sub-accounts will post to
-    Value: !Ref LaceworkAccountSNS
