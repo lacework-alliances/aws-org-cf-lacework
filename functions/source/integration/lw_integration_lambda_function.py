@@ -53,7 +53,7 @@ def on_create(lacework_client, role_arn, external_id, account_id, event, context
     integration_prefix = os.environ['LW_INT_PREFIX']
     lw_account = os.environ['LW_ACCOUNT']
 
-    logger.info('Started creating AWS Config integration for account ID %s', account_id)
+    logger.info('Started creating AWS Config integration for account ID %s %s %s', account_id, role_arn, external_id)
     send_honeycomb_event(HONEY_API_KEY, DATASET, BUILD_VERSION, lw_account, "create started",
                          "", get_lacework_environment_variables())
 

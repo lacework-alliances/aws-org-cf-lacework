@@ -88,7 +88,7 @@ Parameters:
     Description: "Enter the S3 bucket for Lacework Cloudformation assets. Use this if you want to customize your deployment."
   S3KeyPrefix:
     Type: String
-    Default: lacework-organization-cfn-role-trust
+    Default: lacework-organization-cfn
     MinLength: '1'
     Description: "Enter the S3 key prefix for Lacework Cloudformation assets directory. Use this if you want to customize your deployment."
 
