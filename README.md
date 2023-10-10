@@ -12,8 +12,8 @@ This code is designed for customers using AWS Organizations _without_ Control To
 
 The master CloudFormation template sits in the following location:
 
-`https://lacework-alliances.s3.us-west-2.amazonaws.com/lacework-organization-cfn-role-trust/templates/lacework-aws-cfg-manage.template.yml`
+`https://lacework-alliances.s3.us-west-2.amazonaws.com/lacework-organization-cfn/templates/lacework-aws-cfg-manage.template.yml`
 
 Or you can simply click the button below to open the template in the AWS console.
 
-[![Launch Stack](https://user-images.githubusercontent.com/6440106/153987820-e1f32423-1e69-416d-8bca-2ee3a1e85df1.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/create/review?templateURL=https://lacework-alliances.s3.us-west-2.amazonaws.com/lacework-organization-cfn-role-trust/templates/lacework-aws-cfg-manage.template.yml)
+[![Launch Stack](https://user-images.githubusercontent.com/6440106/153987820-e1f32423-1e69-416d-8bca-2ee3a1e85df1.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/create/review?templateURL=https://lacework-alliances.s3.us-west-2.amazonaws.com/lacework-organization-cfn/templates/lacework-aws-cfg-manage.template.yml)

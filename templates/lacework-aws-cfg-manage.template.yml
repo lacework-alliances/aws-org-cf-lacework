@@ -319,7 +319,7 @@ Resources:
         RetainStacksOnAccountRemoval: false
       Parameters:
         - ParameterKey: ExternalID
-          ParameterValue: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Select [ 4, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]
+          ParameterValue: !Select [ 4, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]
         - ParameterKey: MainAccountSNS
           ParameterValue: !Ref LaceworkAccountSNS
         - ParameterKey: ResourceNamePrefix
