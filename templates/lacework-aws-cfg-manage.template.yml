@@ -318,8 +318,8 @@ Resources:
         Enabled: true
         RetainStacksOnAccountRemoval: false
       Parameters:
-        - ParameterKey: ExternalID
-          ParameterValue: !Select [ 4, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]
+        - ParameterKey: LaceworkAccount
+          ParameterValue: !Ref LaceworkAccount
         - ParameterKey: MainAccountSNS
           ParameterValue: !Ref LaceworkAccountSNS
         - ParameterKey: ResourceNamePrefix
