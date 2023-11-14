@@ -58,7 +58,7 @@ Resources:
                     - :root
             Condition:
               StringEquals:
-                sts:ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Select [ 4, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]
+                sts:ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/SecurityAudit
 
@@ -94,14 +94,14 @@ Resources:
         Fn::GetAtt:
           - LaceworkCrossAccountAccessRole
           - Arn
-      ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Select [ 4, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]
+      ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
       AccountId:
         Ref: AWS::AccountId
 
 Outputs:
   ExternalID:
     Description: External ID to share with Lacework AWS Config Security Audit
-    Value: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Select [ 4, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]
+    Value: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
   RoleARN:
     Description: Cross account Role ARN for Lacework AWS Config Security Audit
     Value:
