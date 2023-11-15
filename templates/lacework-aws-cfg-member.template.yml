@@ -6,13 +6,13 @@ Metadata:
     ParameterGroups:
       - Parameters:
           - ResourceNamePrefix
-          - ExternalID
+          - LaceworkAccount
           - MainAccountSNS
     ParameterLabels:
       ResourceNamePrefix:
         default: Resource name prefix
-      ExternalID:
-        default: ExternalID
+      LaceworkAccount:
+        default: Lacework Account
       MainAccountSNS:
         default: SNS Topic in main account
 
@@ -25,11 +25,11 @@ Parameters:
     MaxLength: "45"
     AllowedPattern: ^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$
     ConstraintDescription: Invalid resource name prefix.  Must match pattern ^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$
-  ExternalID:
-    Description: The cross-account access role created by the stack will use this value for its ExternalID.
+  LaceworkAccount:
+    Description: This your Lacework account.
     Type: String
-    MinLength: "2"
-    MaxLength: "1224"
+    MinLength: "1"
+    MaxLength: "45"
     ConstraintDescription: Invalid ExternalID value.  Must be between 2 and 1224 characters
   MainAccountSNS:
     Description: ARN of SNS topic that we post to start the integration
@@ -58,8 +58,7 @@ Resources:
                     - :root
             Condition:
               StringEquals:
-                sts:ExternalId:
-                  Ref: ExternalID
+                sts:ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/SecurityAudit
 
@@ -95,16 +94,14 @@ Resources:
         Fn::GetAtt:
           - LaceworkCrossAccountAccessRole
           - Arn
-      ExternalId:
-        Ref: ExternalID
+      ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
       AccountId:
         Ref: AWS::AccountId
 
 Outputs:
   ExternalID:
     Description: External ID to share with Lacework AWS Config Security Audit
-    Value:
-      Ref: ExternalID
+    Value: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
   RoleARN:
     Description: Cross account Role ARN for Lacework AWS Config Security Audit
     Value:
