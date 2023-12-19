@@ -30,11 +30,12 @@ def handler(event, context):
     role_arn = event_message['ResourceProperties']['RoleArn']
     external_id = event_message['ResourceProperties']['ExternalId']
     account_id = event_message['ResourceProperties']['AccountId']
+    secret_name = event_message['ResourceProperties']['SecretName']
 
     logger.info('Request Type: %s', request_type)
     logger.info('Role ARN: %s', role_arn)
 
-    lacework_client = get_lacework_client(event_message, context)
+    lacework_client = get_lacework_client(secret_name, event_message, context)
 
     try:
         if request_type == 'Create':
@@ -180,8 +181,8 @@ def send_cfn_failure(event, context, message_text, exception=None):
     cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
 
 
-def get_lacework_client(event, context):
-    secret_name = 'LaceworkApiCredentials'
+def get_lacework_client(secret_name, event, context):
+    # secret_name = 'LaceworkApiCredentials'
     region_name = os.environ['AWS_REGION']
 
     session = boto3.session.Session()

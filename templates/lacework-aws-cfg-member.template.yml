@@ -97,6 +97,7 @@ Resources:
       ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
       AccountId:
         Ref: AWS::AccountId
+      SecretName: !Join ['-', ['LaceworkApiCredentials', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
 
 Outputs:
   ExternalID:
