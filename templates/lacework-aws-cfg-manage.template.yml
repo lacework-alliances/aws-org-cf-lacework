@@ -251,7 +251,6 @@ Resources:
     Type: AWS::SecretsManager::Secret
     Properties:
       Description: Lacework API Access Keys
-      Name: !Join ['-', ['LaceworkApiCredentials', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
       SecretString:
         Fn::Join:
           - ''
@@ -324,6 +323,8 @@ Resources:
           ParameterValue: !Ref LaceworkAccountSNS
         - ParameterKey: ResourceNamePrefix
           ParameterValue: !Ref ResourceNamePrefix
+        - ParameterKey: SecretArn
+          ParameterValue: !GetAtt LaceworkApiCredentials.Id
       StackInstancesGroup:
         - Regions:
             - !Ref AWS::Region

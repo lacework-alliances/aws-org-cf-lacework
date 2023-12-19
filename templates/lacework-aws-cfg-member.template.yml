@@ -8,6 +8,7 @@ Metadata:
           - ResourceNamePrefix
           - LaceworkAccount
           - MainAccountSNS
+          - SecretArn
     ParameterLabels:
       ResourceNamePrefix:
         default: Resource name prefix
@@ -15,6 +16,8 @@ Metadata:
         default: Lacework Account
       MainAccountSNS:
         default: SNS Topic in main account
+      SecretArn:
+        default: AWS Secrets Manager secret ARN for Lacework API credentials
 
 Parameters:
   ResourceNamePrefix:
@@ -33,6 +36,9 @@ Parameters:
     ConstraintDescription: Invalid ExternalID value.  Must be between 2 and 1224 characters
   MainAccountSNS:
     Description: ARN of SNS topic that we post to start the integration
+    Type: String
+  SecretArn:
+    Description: AWS Secrets Manager secret ARN for Lacework API credentials
     Type: String
 
 Resources:
@@ -97,7 +103,7 @@ Resources:
       ExternalId: !Join [':',[!Sub "lweid:aws:v2:${LaceworkAccount}:${AWS::AccountId}", !Join ['',["LW",!Select [ 0, !Split [ '-', !Select [ 2, !Split [ '/', !Ref AWS::StackId ] ] ] ]]]]]
       AccountId:
         Ref: AWS::AccountId
-      SecretName: !Join ['-', ['LaceworkApiCredentials', !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+      SecretArn: !Ref SecretArn
 
 Outputs:
   ExternalID:
