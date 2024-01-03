@@ -30,11 +30,12 @@ def handler(event, context):
     role_arn = event_message['ResourceProperties']['RoleArn']
     external_id = event_message['ResourceProperties']['ExternalId']
     account_id = event_message['ResourceProperties']['AccountId']
+    secret_arn = event_message['ResourceProperties']['SecretArn']
 
     logger.info('Request Type: %s', request_type)
     logger.info('Role ARN: %s', role_arn)
 
-    lacework_client = get_lacework_client(event_message, context)
+    lacework_client = get_lacework_client(secret_arn, event_message, context)
 
     try:
         if request_type == 'Create':
@@ -180,8 +181,7 @@ def send_cfn_failure(event, context, message_text, exception=None):
     cfnresponse.send(event, context, cfnresponse.FAILED, response_data)
 
 
-def get_lacework_client(event, context):
-    secret_name = 'LaceworkApiCredentials'
+def get_lacework_client(secret_arn, event, context):
     region_name = os.environ['AWS_REGION']
 
     session = boto3.session.Session()
@@ -192,14 +192,14 @@ def get_lacework_client(event, context):
 
     try:
         get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
+            SecretId=secret_arn
         )
     except ClientError as error:
 
         err_msg = str(error)
 
         if error.response['Error']['Code'] == 'ResourceNotFoundException':
-            err_msg = f'The requested secret {secret_name} was not found'
+            err_msg = f'The requested secret {secret_arn} was not found'
         elif error.response['Error']['Code'] == 'InvalidRequestException':
             err_msg = f'The request was invalid due to: {err_msg}'
         elif error.response['Error']['Code'] == 'InvalidParameterException':

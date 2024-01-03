@@ -251,7 +251,6 @@ Resources:
     Type: AWS::SecretsManager::Secret
     Properties:
       Description: Lacework API Access Keys
-      Name: LaceworkApiCredentials
       SecretString:
         Fn::Join:
           - ''
@@ -324,10 +323,12 @@ Resources:
           ParameterValue: !Ref LaceworkAccountSNS
         - ParameterKey: ResourceNamePrefix
           ParameterValue: !Ref ResourceNamePrefix
+        - ParameterKey: SecretArn
+          ParameterValue: !GetAtt LaceworkApiCredentials.Id
       StackInstancesGroup:
         - Regions:
             - !Ref AWS::Region
           DeploymentTargets:
             OrganizationalUnitIds:
               - !Ref OrganizationalUnit
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/1.0.0/lacework-aws-cfg-member.template.yml"
