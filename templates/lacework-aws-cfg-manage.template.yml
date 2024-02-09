@@ -203,7 +203,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: !Ref LambdaZipsBucket
-        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup1.1.2.zip']]
+        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup1.1.3.zip']]
       Handler: lw_integration_lambda_function.handler
       Runtime: python3.9
       Timeout: 900
