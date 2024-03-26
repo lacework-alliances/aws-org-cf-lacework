@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Allows for automatic on-boarding/off-boarding of AWS accounts within your Lacework tenant. As new AWS accounts are added/updated/deleted within your AWS organization, the appropriate roles and permissions will be provisioned, and Lacework will be notified of the event. v1.1.2"
+Description: "Allows for automatic on-boarding/off-boarding of AWS accounts within your Lacework tenant. As new AWS accounts are added/updated/deleted within your AWS organization, the appropriate roles and permissions will be provisioned, and Lacework will be notified of the event. v1.1.3"
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -12,7 +12,7 @@ Metadata:
           - LaceworkAccessKeyID
           - LaceworkSecretKey
           - OrganizationID
-          - OrganizationalUnit
+          - OrganizationalUnits
           - ResourceNamePrefix
       - Label:
           default: "Advanced Configuration"
@@ -29,9 +29,9 @@ Metadata:
       LaceworkSecretKey:
         default: Lacework Secret Key
       OrganizationID:
-        default: AWS Organization ID in which this CloudFormation template is being deployed (format = o-xxxx)
-      OrganizationalUnit:
-        default: Organizational Unit in which to deploy the StackSet (format = ou-xxxx)
+        default: Parent AWS Organization ID in which this CloudFormation template is being deployed (format = o-xxxx)
+      OrganizationalUnits:
+        default: Comma separated list of Organizational Units in which to deploy the StackSet (format = ou-xxxx)
       ResourceNamePrefix:
         default: Prefix for resources created by the StackSet
       S3BucketName:
@@ -69,11 +69,9 @@ Parameters:
     AllowedPattern: '^o-[a-z0-9]{10,32}$'
     MinLength: '12'
     MaxLength: '45'
-  OrganizationalUnit:
-    Type: String
-    Description: "Organizational Unit ID that the stackset will be deployed into"
-    MinLength: '1'
-    MaxLength: '45'
+  OrganizationalUnits:
+    Type: CommaDelimitedList
+    Description: "Comma separated list of Organizational Units that the stackset will be deployed into"
   ResourceNamePrefix:
     Type: String
     Default: 'lw-stackset'
@@ -104,7 +102,7 @@ Resources:
       SourceBucket: !Ref 'S3BucketName'
       Prefix: !Ref 'S3KeyPrefix'
       Objects:
-        - '/lambda/LaceworkIntegrationSetup1.1.2.zip'
+        - '/lambda/LaceworkIntegrationSetup1.1.3.zip'
 
   CopyZipsRole:
     Type: AWS::IAM::Role
@@ -329,6 +327,5 @@ Resources:
         - Regions:
             - !Ref AWS::Region
           DeploymentTargets:
-            OrganizationalUnitIds:
-              - !Ref OrganizationalUnit
-      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/1.0.0/lacework-aws-cfg-member.template.yml"
+            OrganizationalUnitIds: !Ref OrganizationalUnits
+      TemplateURL: !Sub "https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}/templates/lacework-aws-cfg-member.template.yml"
