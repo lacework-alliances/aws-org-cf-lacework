@@ -141,7 +141,7 @@ Resources:
     Properties:
       Description: Copies objects from the S3 bucket to a new location.
       Handler: index.handler
-      Runtime: python3.9
+      Runtime: python3.11
       Role: !GetAtt 'CopyZipsRole.Arn'
       Timeout: 240
       Code:
@@ -203,7 +203,7 @@ Resources:
         S3Bucket: !Ref LambdaZipsBucket
         S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup1.1.3.zip']]
       Handler: lw_integration_lambda_function.handler
-      Runtime: python3.9
+      Runtime: python3.11
       Timeout: 900
       Environment:
         Variables:
