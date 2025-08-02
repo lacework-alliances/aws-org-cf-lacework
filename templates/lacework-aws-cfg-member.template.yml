@@ -41,6 +41,11 @@ Parameters:
     Description: AWS Secrets Manager secret ARN for Lacework API credentials
     Type: String
 
+Conditions:
+  IsDevtest: !Or
+    - !Equals [!Ref LaceworkAccount, "qan"]
+    - !Equals [!Ref LaceworkAccount, "dev5"]
+
 Resources:
   LaceworkCrossAccountAccessRole:
     Type: AWS::IAM::Role
@@ -60,7 +65,7 @@ Resources:
                 Fn::Join:
                   - ""
                   - - 'arn:aws:iam::'
-                    - "434813966438"
+                    - !If [IsDevtest, "249446771485", "434813966438"]
                     - :role/lacework-platform
             Condition:
               StringEquals:
