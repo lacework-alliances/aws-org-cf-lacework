@@ -904,64 +904,64 @@ Resources:
       Roles:
         - !Ref LaceworkCrossAccountAccessRole
   LaceworkCWSAuditPolicy20254:
-      Type: AWS::IAM::ManagedPolicy
-      Properties:
-        ManagedPolicyName:  !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20254"
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Sid: SSM
-              Action:
-                - 'ssm:GetConnectionStatus'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: EKS
-              Action:
-                - 'eks:DescribeAddon'
-                - 'eks:ListAddons'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: INSPECTOR2
-              Action:
-                - 'inspector2:BatchGetCodeSnippet'
-                - 'inspector2:ListCisScanResultsAggregatedByChecks'
-                - 'inspector2:ListCisScanResultsAggregatedByTargetResource'
-                - 'inspector2:ListCisScanConfigurations'
-                - 'inspector2:ListMembers'
-                - 'inspector2:BatchGetFindingDetails'
-                - 'inspector2:GetCisScanReport'
-                - 'inspector2:GetCisScanResultDetails'
-                - 'inspector2:ListCisScans'
-                - 'inspector2:GetEncryptionKey'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: WAF
-              Action:
-                - 'waf:GetRegexPatternSet'
-                - 'waf:GetPermissionPolicy'
-                - 'waf:ListIPSets'
-                - 'waf:GetIPSet'
-                - 'waf:GetRuleGroup'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: WAFV2
-              Action:
-                - 'wafv2:GetManagedRuleSet'
-                - 'wafv2:GetRegexPatternSet'
-                - 'wafv2:GetPermissionPolicy'
-                - 'wafv2:GetIPSet'
-                - 'wafv2:ListIPSets'
-                - 'wafv2:ListManagedRuleSets'
-                - 'wafv2:GetRuleGroup'
-              Effect: Allow
-              Resource:
-                - '*'
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName:  !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20254"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: SSM
+            Action:
+              - 'ssm:GetConnectionStatus'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: EKS
+            Action:
+              - 'eks:DescribeAddon'
+              - 'eks:ListAddons'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: INSPECTOR2
+            Action:
+              - 'inspector2:BatchGetCodeSnippet'
+              - 'inspector2:ListCisScanResultsAggregatedByChecks'
+              - 'inspector2:ListCisScanResultsAggregatedByTargetResource'
+              - 'inspector2:ListCisScanConfigurations'
+              - 'inspector2:ListMembers'
+              - 'inspector2:BatchGetFindingDetails'
+              - 'inspector2:GetCisScanReport'
+              - 'inspector2:GetCisScanResultDetails'
+              - 'inspector2:ListCisScans'
+              - 'inspector2:GetEncryptionKey'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: WAF
+            Action:
+              - 'waf:GetRegexPatternSet'
+              - 'waf:GetPermissionPolicy'
+              - 'waf:ListIPSets'
+              - 'waf:GetIPSet'
+              - 'waf:GetRuleGroup'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: WAFV2
+            Action:
+              - 'wafv2:GetManagedRuleSet'
+              - 'wafv2:GetRegexPatternSet'
+              - 'wafv2:GetPermissionPolicy'
+              - 'wafv2:GetIPSet'
+              - 'wafv2:ListIPSets'
+              - 'wafv2:ListManagedRuleSets'
+              - 'wafv2:GetRuleGroup'
+            Effect: Allow
+            Resource:
+              - '*'
       Roles:
-              - !Ref LaceworkCrossAccountAccessRole
+        - !Ref LaceworkCrossAccountAccessRole
   LaceworkSnsCustomResource:
     Type: Custom::LaceworkSnsCustomResource
     DependsOn:
