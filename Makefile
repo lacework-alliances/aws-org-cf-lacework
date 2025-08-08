@@ -1,5 +1,5 @@
 BUCKET_PREFIX := lacework-alliances
-KEY_PREFIX := lacework-organization-cfn
+KEY_PREFIX := lacework-organization-cfn-dev
 PACKAGES_PREFIX := lambda/
 CFT_PREFIX := templates
 CFT_DIR := templates
