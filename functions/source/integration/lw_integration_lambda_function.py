@@ -130,7 +130,6 @@ def on_delete(lacework_client, role_arn, external_id, event, context):
     integration = find_integration(lacework_client, role_arn, external_id)
     lw_account = os.environ['LW_ACCOUNT']
     
-    #                      "", get_lacework_environment_variables()) # Commented out
     if integration:
         logger.info('Started deleting AWS Config integration %s', integration['intgGuid'])
 
