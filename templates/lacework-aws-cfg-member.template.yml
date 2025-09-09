@@ -56,7 +56,7 @@ Resources:
           - - Ref: ResourceNamePrefix
             - laceworkcwsrole-sa
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Action: sts:AssumeRole
             Effect: Allow
@@ -77,7 +77,7 @@ Resources:
     Properties:
       ManagedPolicyName: !Sub "LaceworkCWSPolicy-${AWS::AccountId}"
       PolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
           - Sid: Debug
             Action:
@@ -98,7 +98,7 @@ Resources:
     Properties:
       ManagedPolicyName: !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}"
       PolicyDocument:
-        Version: 2012-10-17
+        Version: '2012-10-17'
         Statement:
           - Sid: GetBucketPublicAccessBlock
             Action:
@@ -124,6 +124,7 @@ Resources:
             Action:
               - 'sagemaker:GetModelPackageGroupPolicy'
               - 'sagemaker:GetLineageGroupPolicy'
+              - 'sagemaker:GetDeviceFleetReport'
             Effect: Allow
             Resource:
               - '*'
@@ -160,16 +161,12 @@ Resources:
           - Sid: GLACIER
             Action:
               - 'glacier:ListTagsForVault'
-            Effect: Allow
-            Resource:
-              - '*'
-          - Sid: WAFREGIONAL
-            Action:
-              - 'waf-regional:ListRules'
-              - 'waf-regional:GetRule'
-              - 'waf-regional:ListRuleGroups'
-              - 'waf-regional:GetRuleGroup'
-              - 'waf-regional:ListActivatedRulesInRuleGroup'
+              - 'glacier:GetJobOutput'
+              - 'glacier:ListJobs'
+              - 'glacier:ListMultipartUploads'
+              - 'glacier:ListParts'
+              - 'glacier:ListProvisionedCapacity'
+              - 'glacier:GetVaultNotifications'
             Effect: Allow
             Resource:
               - '*'
@@ -178,6 +175,7 @@ Resources:
               - 'glue:ListWorkflows'
               - 'glue:BatchGetWorkflows'
               - 'glue:GetWorkflow'
+              - 'glue:GetTables'
             Effect: Allow
             Resource:
               - '*'
@@ -185,6 +183,17 @@ Resources:
             Action:
               - 'codebuild:ListBuilds'
               - 'codebuild:BatchGetBuilds'
+              - 'codebuild:BatchGetBuildBatches'
+              - 'codebuild:ListBuildBatches'
+              - 'codebuild:DescribeCodeCoverages'
+              - 'codebuild:ListCuratedEnvironmentImages'
+              - 'codebuild:BatchGetReports'
+              - 'codebuild:ListReports'
+              - 'codebuild:BatchGetReportGroups'
+              - 'codebuild:ListReportGroups'
+              - 'codebuild:ListSharedProjects'
+              - 'codebuild:ListSharedReportGroups'
+              - 'codebuild:DescribeTestCases'
             Effect: Allow
             Resource:
               - '*'
@@ -315,379 +324,463 @@ Resources:
       Roles:
         - !Ref LaceworkCrossAccountAccessRole
   LaceworkCWSAuditPolicy20251:
-      Type: 'AWS::IAM::ManagedPolicy'
-      Properties:
-        ManagedPolicyName:  !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20251"
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-            - Sid: APPSTREAM
-              Action:
-                - 'appstream:Describe*'
-                - 'appstream:List*'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: PERSONALIZE
-              Action:
-                - 'personalize:Describe*'
-                - 'personalize:List*'
-                - 'personalize:GetSolutionMetrics'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: CODEARTIFACT
-              Action:
-                - 'codeartifact:ListDomains'
-                - 'codeartifact:DescribeDomain'
-                - 'codeartifact:DescribeRepository'
-                - 'codeartifact:ListPackages'
-                - 'codeartifact:GetRepositoryEndpoint'
-                - 'codeartifact:DescribePackage'
-                - 'codeartifact:ListPackageVersions'
-                - 'codeartifact:DescribePackageVersion'
-                - 'codeartifact:GetPackageVersionReadme'
-                - 'codeartifact:ListPackageVersionDependencies'
-                - 'codeartifact:ListPackageVersionAssets'
-                - 'codeartifact:GetPackageVersionAsset'
-                - 'codeartifact:ListTagsForResource'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: FIS
-              Action:
-                - 'fis:ListActions'
-                - 'fis:GetAction'
-                - 'fis:ListExperimentTemplates'
-                - 'fis:GetExperimentTemplate'
-                - 'fis:ListTargetAccountConfigurations'
-                - 'fis:ListExperiments'
-                - 'fis:GetExperiment'
-                - 'fis:ListExperimentResolvedTargets'
-                - 'fis:ListTagsForResource'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: MEMORYDB
-              Action:
-                - 'memorydb:DescribeMultiRegionClusters'
-                - 'memorydb:DescribeSnapshots'
-                - 'memorydb:DescribeSubnetGroups'
-                - 'memorydb:DescribeParameterGroups'
-                - 'memorydb:DescribeParameters'
-                - 'memorydb:DescribeUsers'
-                - 'memorydb:DescribeACLs'
-                - 'memorydb:DescribeServiceUpdates'
-                - 'memorydb:DescribeEngineVersions'
-                - 'memorydb:DescribeReservedNodes'
-                - 'memorydb:DescribeReservedNodesOfferings'
-                - 'memorydb:ListTags'
-                - 'memorydb:ListAllowedNodeTypeUpdates'
-                - 'memorydb:ListAllowedMultiRegionClusterUpdates'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: QBUSINESS
-              Action:
-                - 'qbusiness:GetApplication'
-                - 'qbusiness:GetChatControlsConfiguration'
-                - 'qbusiness:GetPolicy'
-                - 'qbusiness:ListAttachments'
-                - 'qbusiness:ListConversations'
-                - 'qbusiness:ListMessages'
-                - 'qbusiness:ListDataAccessors'
-                - 'qbusiness:GetDataAccessor'
-                - 'qbusiness:GetIndex'
-                - 'qbusiness:GetDataSource'
-                - 'qbusiness:GetPlugin'
-                - 'qbusiness:ListPluginActions'
-                - 'qbusiness:GetRetriever'
-                - 'qbusiness:GetWebExperience'
-                - 'qbusiness:ListPluginTypeMetadata'
-                - 'qbusiness:ListPluginTypeActions'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: QAPPS
-              Action:
-                - 'qapps:DescribeQAppPermissions'
-                - 'qapps:GetLibraryItem'
-                - 'qapps:GetQApp'
-                - 'qapps:GetQAppSession'
-                - 'qapps:GetQAppSessionMetadata'
-                - 'qapps:ListCategories'
-                - 'qapps:ListLibraryItems'
-                - 'qapps:ListQAppSessionData'
-                - 'qapps:ListQApps'
-                - 'qapps:ListTagsForResource'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: QCONNECT
-              Action:
-                - 'wisdom:GetAIAgent'
-                - 'wisdom:GetAIGuardrail'
-                - 'wisdom:GetAIPrompt'
-                - 'wisdom:GetContent'
-                - 'wisdom:GetImportJob'
-                - 'wisdom:GetKnowledgeBase'
-                - 'wisdom:GetMessageTemplate'
-                - 'wisdom:GetQuickResponse'
-                - 'wisdom:ListAIAgentVersions'
-                - 'wisdom:ListAIAgents'
-                - 'wisdom:ListAIGuardrailVersions'
-                - 'wisdom:ListAIGuardrails'
-                - 'wisdom:ListAIPromptVersions'
-                - 'wisdom:ListAIPrompts'
-                - 'wisdom:ListAssistantAssociations'
-                - 'wisdom:ListAssistants'
-                - 'wisdom:ListContentAssociations'
-                - 'wisdom:ListContents'
-                - 'wisdom:ListImportJobs'
-                - 'wisdom:ListKnowledgeBases'
-                - 'wisdom:ListMessageTemplateVersions'
-                - 'wisdom:ListMessageTemplates'
-                - 'wisdom:ListQuickResponses'
-                - 'wisdom:ListTagsForResource'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: RESOURCEGROUPS
-              Action:
-                - 'resource-groups:ListGroups'
-                - 'resource-groups:GetGroupQuery'
-                - 'resource-groups:GetGroupConfiguration'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: SERVICECATALOGAPPREGISTRY
-              Action:
-                - 'servicecatalog:GetApplication'
-                - 'servicecatalog:ListApplications'
-                - 'servicecatalog:GetAssociatedResource'
-                - 'servicecatalog:ListAssociatedResources'
-                - 'servicecatalog:ListAssociatedAttributeGroups'
-                - 'servicecatalog:GetAttributeGroup'
-                - 'servicecatalog:ListAttributeGroups'
-                - 'servicecatalog:ListTagsForResource'
-                - 'servicecatalog:ListAttributeGroupsForApplication'
-                - 'servicecatalog:GetConfiguration'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: OAM
-              Action:
-                - 'oam:GetLink'
-                - 'oam:GetSink'
-                - 'oam:GetSinkPolicy'
-                - 'oam:ListAttachedLinks'
-                - 'oam:ListLinks'
-                - 'oam:ListSinks'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: CLOUDDIRECTORY
-              Action:
-                - 'clouddirectory:GetAppliedSchemaVersion'
-                - 'clouddirectory:GetDirectory'
-                - 'clouddirectory:GetFacet'
-                - 'clouddirectory:GetLinkAttributes'
-                - 'clouddirectory:GetObjectAttributes'
-                - 'clouddirectory:GetObjectInformation'
-                - 'clouddirectory:GetSchemaAsJson'
-                - 'clouddirectory:GetTypedLinkFacetInformation'
-                - 'clouddirectory:ListAppliedSchemaArns'
-                - 'clouddirectory:ListAttachedIndices'
-                - 'clouddirectory:ListDevelopmentSchemaArns'
-                - 'clouddirectory:ListFacetAttributes'
-                - 'clouddirectory:ListFacetNames'
-                - 'clouddirectory:ListIncomingTypedLinks'
-                - 'clouddirectory:ListIndex'
-                - 'clouddirectory:ListManagedSchemaArns'
-                - 'clouddirectory:ListObjectAttributes'
-                - 'clouddirectory:ListObjectChildren'
-                - 'clouddirectory:ListObjectParentPaths'
-                - 'clouddirectory:ListObjectParents'
-                - 'clouddirectory:ListObjectPolicies'
-                - 'clouddirectory:ListOutgoingTypedLinks'
-                - 'clouddirectory:ListPolicyAttachments'
-                - 'clouddirectory:ListPublishedSchemaArns'
-                - 'clouddirectory:ListTagsForResource'
-                - 'clouddirectory:ListTypedLinkFacetAttributes'
-                - 'clouddirectory:ListTypedLinkFacetNames'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: COSTOPTIMIZATIONHUB
-              Action:
-                - 'cost-optimization-hub:GetPreferences'
-                - 'cost-optimization-hub:GetRecommendation'
-                - 'cost-optimization-hub:ListEnrollmentStatuses'
-                - 'cost-optimization-hub:ListRecommendationSummaries'
-                - 'cost-optimization-hub:ListRecommendations'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: BUDGETS
-              Action:
-                - 'budgets:DescribeBudgetAction'
-                - 'budgets:DescribeBudgetActionHistories'
-                - 'budgets:DescribeBudgetActionsForAccount'
-                - 'budgets:DescribeBudgetActionsForBudget'
-                - 'budgets:ListTagsForResource'
-                - 'budgets:ViewBudget'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: BILLINGCONSOLE
-              Action:
-                - 'aws-portal:GetConsoleActionSetEnforced'
-                - 'aws-portal:ViewAccount'
-                - 'aws-portal:ViewBilling'
-                - 'aws-portal:ViewPaymentMethods'
-                - 'aws-portal:ViewUsage'
-              Effect: Allow
-              Resource:
-                - '*'
-        Roles:
-          - !Ref LaceworkCrossAccountAccessRole
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20251"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: APPSTREAM
+            Action:
+              - 'appstream:Describe*'
+              - 'appstream:List*'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: PERSONALIZE
+            Action:
+              - 'personalize:Describe*'
+              - 'personalize:List*'
+              - 'personalize:GetSolutionMetrics'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: CODEARTIFACT
+            Action:
+              - 'codeartifact:ListDomains'
+              - 'codeartifact:DescribeDomain'
+              - 'codeartifact:DescribeRepository'
+              - 'codeartifact:ListPackages'
+              - 'codeartifact:GetRepositoryEndpoint'
+              - 'codeartifact:DescribePackage'
+              - 'codeartifact:ListPackageVersions'
+              - 'codeartifact:DescribePackageVersion'
+              - 'codeartifact:GetPackageVersionReadme'
+              - 'codeartifact:ListPackageVersionDependencies'
+              - 'codeartifact:ListPackageVersionAssets'
+              - 'codeartifact:GetPackageVersionAsset'
+              - 'codeartifact:ListTagsForResource'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: FIS
+            Action:
+              - 'fis:ListActions'
+              - 'fis:GetAction'
+              - 'fis:ListExperimentTemplates'
+              - 'fis:GetExperimentTemplate'
+              - 'fis:ListTargetAccountConfigurations'
+              - 'fis:ListExperiments'
+              - 'fis:GetExperiment'
+              - 'fis:ListExperimentResolvedTargets'
+              - 'fis:ListTagsForResource'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: MEMORYDB
+            Action:
+              - 'memorydb:DescribeMultiRegionClusters'
+              - 'memorydb:DescribeSnapshots'
+              - 'memorydb:DescribeSubnetGroups'
+              - 'memorydb:DescribeParameterGroups'
+              - 'memorydb:DescribeParameters'
+              - 'memorydb:DescribeUsers'
+              - 'memorydb:DescribeACLs'
+              - 'memorydb:DescribeServiceUpdates'
+              - 'memorydb:DescribeEngineVersions'
+              - 'memorydb:DescribeReservedNodes'
+              - 'memorydb:DescribeReservedNodesOfferings'
+              - 'memorydb:ListTags'
+              - 'memorydb:ListAllowedNodeTypeUpdates'
+              - 'memorydb:ListAllowedMultiRegionClusterUpdates'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: QBUSINESS
+            Action:
+              - 'qbusiness:GetApplication'
+              - 'qbusiness:GetChatControlsConfiguration'
+              - 'qbusiness:GetPolicy'
+              - 'qbusiness:ListAttachments'
+              - 'qbusiness:ListConversations'
+              - 'qbusiness:ListMessages'
+              - 'qbusiness:ListDataAccessors'
+              - 'qbusiness:GetDataAccessor'
+              - 'qbusiness:GetIndex'
+              - 'qbusiness:GetDataSource'
+              - 'qbusiness:GetPlugin'
+              - 'qbusiness:ListPluginActions'
+              - 'qbusiness:GetRetriever'
+              - 'qbusiness:GetWebExperience'
+              - 'qbusiness:ListPluginTypeMetadata'
+              - 'qbusiness:ListPluginTypeActions'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: QAPPS
+            Action:
+              - 'qapps:DescribeQAppPermissions'
+              - 'qapps:GetLibraryItem'
+              - 'qapps:GetQApp'
+              - 'qapps:GetQAppSession'
+              - 'qapps:GetQAppSessionMetadata'
+              - 'qapps:ListCategories'
+              - 'qapps:ListLibraryItems'
+              - 'qapps:ListQAppSessionData'
+              - 'qapps:ListQApps'
+              - 'qapps:ListTagsForResource'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: QCONNECT
+            Action:
+              - 'wisdom:GetAIAgent'
+              - 'wisdom:GetAIGuardrail'
+              - 'wisdom:GetAIPrompt'
+              - 'wisdom:GetContent'
+              - 'wisdom:GetImportJob'
+              - 'wisdom:GetKnowledgeBase'
+              - 'wisdom:GetMessageTemplate'
+              - 'wisdom:GetQuickResponse'
+              - 'wisdom:ListAIAgentVersions'
+              - 'wisdom:ListAIAgents'
+              - 'wisdom:ListAIGuardrailVersions'
+              - 'wisdom:ListAIGuardrails'
+              - 'wisdom:ListAIPromptVersions'
+              - 'wisdom:ListAIPrompts'
+              - 'wisdom:ListAssistantAssociations'
+              - 'wisdom:ListAssistants'
+              - 'wisdom:ListContentAssociations'
+              - 'wisdom:ListContents'
+              - 'wisdom:ListImportJobs'
+              - 'wisdom:ListKnowledgeBases'
+              - 'wisdom:ListMessageTemplateVersions'
+              - 'wisdom:ListMessageTemplates'
+              - 'wisdom:ListQuickResponses'
+              - 'wisdom:ListTagsForResource'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: RESOURCEGROUPS
+            Action:
+              - 'resource-groups:ListGroups'
+              - 'resource-groups:GetGroupQuery'
+              - 'resource-groups:GetGroupConfiguration'
+              - 'resource-groups:GetTags'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: SERVICECATALOGAPPREGISTRY
+            Action:
+              - 'servicecatalog:GetApplication'
+              - 'servicecatalog:ListApplications'
+              - 'servicecatalog:GetAssociatedResource'
+              - 'servicecatalog:ListAssociatedResources'
+              - 'servicecatalog:ListAssociatedAttributeGroups'
+              - 'servicecatalog:GetAttributeGroup'
+              - 'servicecatalog:ListAttributeGroups'
+              - 'servicecatalog:ListTagsForResource'
+              - 'servicecatalog:ListAttributeGroupsForApplication'
+              - 'servicecatalog:GetConfiguration'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: OAM
+            Action:
+              - 'oam:GetLink'
+              - 'oam:GetSink'
+              - 'oam:GetSinkPolicy'
+              - 'oam:ListAttachedLinks'
+              - 'oam:ListLinks'
+              - 'oam:ListSinks'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: CLOUDDIRECTORY
+            Action:
+              - 'clouddirectory:GetAppliedSchemaVersion'
+              - 'clouddirectory:GetDirectory'
+              - 'clouddirectory:GetFacet'
+              - 'clouddirectory:GetLinkAttributes'
+              - 'clouddirectory:GetObjectAttributes'
+              - 'clouddirectory:GetObjectInformation'
+              - 'clouddirectory:GetSchemaAsJson'
+              - 'clouddirectory:GetTypedLinkFacetInformation'
+              - 'clouddirectory:ListAppliedSchemaArns'
+              - 'clouddirectory:ListAttachedIndices'
+              - 'clouddirectory:ListDevelopmentSchemaArns'
+              - 'clouddirectory:ListFacetAttributes'
+              - 'clouddirectory:ListFacetNames'
+              - 'clouddirectory:ListIncomingTypedLinks'
+              - 'clouddirectory:ListIndex'
+              - 'clouddirectory:ListManagedSchemaArns'
+              - 'clouddirectory:ListObjectAttributes'
+              - 'clouddirectory:ListObjectChildren'
+              - 'clouddirectory:ListObjectParentPaths'
+              - 'clouddirectory:ListObjectParents'
+              - 'clouddirectory:ListObjectPolicies'
+              - 'clouddirectory:ListOutgoingTypedLinks'
+              - 'clouddirectory:ListPolicyAttachments'
+              - 'clouddirectory:ListPublishedSchemaArns'
+              - 'clouddirectory:ListTagsForResource'
+              - 'clouddirectory:ListTypedLinkFacetAttributes'
+              - 'clouddirectory:ListTypedLinkFacetNames'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: COSTOPTIMIZATIONHUB
+            Action:
+              - 'cost-optimization-hub:GetPreferences'
+              - 'cost-optimization-hub:GetRecommendation'
+              - 'cost-optimization-hub:ListEnrollmentStatuses'
+              - 'cost-optimization-hub:ListRecommendationSummaries'
+              - 'cost-optimization-hub:ListRecommendations'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: BUDGETS
+            Action:
+              - 'budgets:DescribeBudgetAction'
+              - 'budgets:DescribeBudgetActionHistories'
+              - 'budgets:DescribeBudgetActionsForAccount'
+              - 'budgets:DescribeBudgetActionsForBudget'
+              - 'budgets:ListTagsForResource'
+              - 'budgets:ViewBudget'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: BILLING
+            Action:
+              - 'billing:GetBillingViewData'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: BILLINGCONSOLE
+            Action:
+              - 'aws-portal:GetConsoleActionSetEnforced'
+              - 'aws-portal:ViewAccount'
+              - 'aws-portal:ViewBilling'
+              - 'aws-portal:ViewPaymentMethods'
+              - 'aws-portal:ViewUsage'
+            Effect: Allow
+            Resource:
+              - '*'
+      Roles:
+        - !Ref LaceworkCrossAccountAccessRole
   LaceworkCWSAuditPolicy20252:
-      Type: 'AWS::IAM::ManagedPolicy'
-      Properties:
-        ManagedPolicyName: !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20252"
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-            - Sid: FREETIER
-              Action:
-                - 'freetier:GetFreeTierUsage'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: ACMPCA
-              Action:
-                - 'acm-pca:GetCertificateAuthorityCertificate'
-                - 'acm-pca:GetCertificateAuthorityCsr'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: APPCONFIG
-              Action:
-                - 'appconfig:GetConfigurationProfile'
-                - 'appconfig:GetDeploymentStrategy'
-                - 'appconfig:GetExtension'
-                - 'appconfig:GetExtensionAssociation'
-                - 'appconfig:GetHostedConfigurationVersion'
-                - 'appconfig:ListApplications'
-                - 'appconfig:ListConfigurationProfiles'
-                - 'appconfig:ListDeployments'
-                - 'appconfig:ListDeploymentStrategies'
-                - 'appconfig:ListEnvironments'
-                - 'appconfig:ListExtensionAssociations'
-                - 'appconfig:ListExtensions'
-                - 'appconfig:ListHostedConfigurationVersions'
-                - 'appconfig:ListTagsForResource'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: APPFLOW
-              Action:
-                - 'appflow:DescribeConnectorEntity'
-                - 'appflow:DescribeConnectorProfiles'
-                - 'appflow:DescribeConnectors'
-                - 'appflow:DescribeFlow'
-                - 'appflow:DescribeFlowExecutionRecords'
-                - 'appflow:ListConnectorEntities'
-                - 'appflow:ListConnectors'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: DYNAMODB
-              Action:
-                - 'dynamodb:GetResourcePolicy'
-                - 'dynamodb:DescribeContributorInsights'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: EBS
-              Action:
-                - 'ebs:GetSnapshotBlock'
-                - 'ebs:ListSnapshotBlocks'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: LAKEFORMATION
-              Action:
-                - 'lakeformation:DescribeLakeFormationIdentityCenterConfiguration'
-                - 'lakeformation:GetDataLakePrincipal'
-                - 'lakeformation:GetDataLakeSettings'
-                - 'lakeformation:GetEffectivePermissionsForPath'
-                - 'lakeformation:GetTableObjects'
-                - 'lakeformation:ListDataCellsFilter'
-                - 'lakeformation:ListPermissions'
-                - 'lakeformation:ListResources'
-                - 'lakeformation:ListTableStorageOptimizers'
-                - 'lakeformation:ListTransactions'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: LAMBDA
-              Action:
-                - 'lambda:GetFunction'
-                - 'lambda:GetFunctionCodeSigningConfig'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: SCHEDULER
-              Action:
-                - 'scheduler:GetSchedule'
-                - 'scheduler:GetScheduleGroup'
-                - 'scheduler:ListScheduleGroups'
-                - 'scheduler:ListSchedules'
-                - 'scheduler:ListTagsForResource'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: SCHEMAS
-              Action:
-                - 'schemas:GetCodeBindingSource'
-              Effect: Allow
-              Resource:
-                - '*'
-            - Sid: DATASYNC
-              Action:
-                - 'datasync:DescribeTaskExecution'
-                - 'datasync:DescribeLocationEfs'
-                - 'datasync:ListAgents'
-                - 'datasync:ListLocations'
-                - 'datasync:ListTaskExecutions'
-                - 'datasync:ListStorageSystems'
-                - 'datasync:DescribeLocationSmb'
-                - 'datasync:DescribeAgent'
-                - 'datasync:DescribeLocationFsxWindows'
-                - 'datasync:DescribeTask'
-                - 'datasync:DescribeLocationS3'
-                - 'datasync:DescribeDiscoveryJob'
-                - 'datasync:DescribeLocationObjectStorage'
-                - 'datasync:DescribeStorageSystem'
-                - 'datasync:DescribeLocationAzureBlob'
-                - 'datasync:ListTagsForResource'
-                - 'datasync:ListTasks'
-                - 'datasync:DescribeLocationHdfs'
-                - 'datasync:DescribeLocationFsxLustre'
-                - 'datasync:ListDiscoveryJobs'
-                - 'datasync:DescribeLocationNfs'
-              Effect: Allow
-              Resource:
-                - '*'
-        Roles:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20252"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: FREETIER
+            Action:
+              - 'freetier:GetFreeTierUsage'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: WAFREGIONAL
+            Action:
+              - 'waf-regional:ListRules'
+              - 'waf-regional:GetRule'
+              - 'waf-regional:ListRuleGroups'
+              - 'waf-regional:GetRuleGroup'
+              - 'waf-regional:ListActivatedRulesInRuleGroup'
+              - 'waf-regional:GetByteMatchSet'
+              - 'waf-regional:GetPermissionPolicy'
+              - 'waf-regional:GetRateBasedRule'
+              - 'waf-regional:ListSizeConstraintSets'
+              - 'waf-regional:ListByteMatchSets'
+              - 'waf-regional:ListGeoMatchSets'
+              - 'waf-regional:GetLoggingConfiguration'
+              - 'waf-regional:GetSqlInjectionMatchSet'
+              - 'waf-regional:ListRateBasedRules'
+              - 'waf-regional:GetSizeConstraintSet'
+              - 'waf-regional:GetRegexMatchSet'
+              - 'waf-regional:GetGeoMatchSet'
+              - 'waf-regional:GetRegexPatternSet'
+              - 'waf-regional:ListRegexMatchSets'
+              - 'waf-regional:GetIPSet'
+              - 'waf-regional:ListSqlInjectionMatchSets'
+              - 'waf-regional:ListXssMatchSets'
+              - 'waf-regional:GetXssMatchSet'
+              - 'waf-regional:ListIpSets'
+              - 'waf-regional:ListRegexPatternSets'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: ACMPCA
+            Action:
+              - 'acm-pca:GetCertificateAuthorityCertificate'
+              - 'acm-pca:GetCertificateAuthorityCsr'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: APPCONFIG
+            Action:
+              - 'appconfig:GetConfigurationProfile'
+              - 'appconfig:GetDeploymentStrategy'
+              - 'appconfig:GetExtension'
+              - 'appconfig:GetExtensionAssociation'
+              - 'appconfig:GetHostedConfigurationVersion'
+              - 'appconfig:ListApplications'
+              - 'appconfig:ListConfigurationProfiles'
+              - 'appconfig:ListDeployments'
+              - 'appconfig:ListDeploymentStrategies'
+              - 'appconfig:ListEnvironments'
+              - 'appconfig:ListExtensionAssociations'
+              - 'appconfig:ListExtensions'
+              - 'appconfig:ListHostedConfigurationVersions'
+              - 'appconfig:ListTagsForResource'
+              - 'appconfig:GetDeployment'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: APPFLOW
+            Action:
+              - 'appflow:DescribeConnectorEntity'
+              - 'appflow:DescribeConnectorProfiles'
+              - 'appflow:DescribeConnector'
+              - 'appflow:DescribeFlow'
+              - 'appflow:DescribeFlowExecutionRecords'
+              - 'appflow:ListConnectorEntities'
+              - 'appflow:ListConnectors'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: DYNAMODB
+            Action:
+              - 'dynamodb:GetResourcePolicy'
+              - 'dynamodb:DescribeContributorInsights'
+              - 'dynamodb:DescribeBackup'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: EBS
+            Action:
+              - 'ebs:GetSnapshotBlock'
+              - 'ebs:ListSnapshotBlocks'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: LAKEFORMATION
+            Action:
+              - 'lakeformation:DescribeLakeFormationIdentityCenterConfiguration'
+              - 'lakeformation:GetDataLakePrincipal'
+              - 'lakeformation:GetDataLakeSettings'
+              - 'lakeformation:GetEffectivePermissionsForPath'
+              - 'lakeformation:GetTableObjects'
+              - 'lakeformation:ListDataCellsFilter'
+              - 'lakeformation:ListPermissions'
+              - 'lakeformation:ListResources'
+              - 'lakeformation:ListTableStorageOptimizers'
+              - 'lakeformation:ListTransactions'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: LAMBDA
+            Action:
+              - 'lambda:GetFunction'
+              - 'lambda:GetFunctionCodeSigningConfig'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: SCHEDULER
+            Action:
+              - 'scheduler:GetSchedule'
+              - 'scheduler:GetScheduleGroup'
+              - 'scheduler:ListScheduleGroups'
+              - 'scheduler:ListSchedules'
+              - 'scheduler:ListTagsForResource'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: SCHEMAS
+            Action:
+              - 'schemas:GetCodeBindingSource'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: DATASYNC
+            Action:
+              - 'datasync:DescribeTaskExecution'
+              - 'datasync:DescribeLocationEfs'
+              - 'datasync:ListAgents'
+              - 'datasync:ListLocations'
+              - 'datasync:ListTaskExecutions'
+              - 'datasync:ListStorageSystems'
+              - 'datasync:DescribeLocationSmb'
+              - 'datasync:DescribeAgent'
+              - 'datasync:DescribeLocationFsxWindows'
+              - 'datasync:DescribeTask'
+              - 'datasync:DescribeLocationS3'
+              - 'datasync:DescribeDiscoveryJob'
+              - 'datasync:DescribeLocationObjectStorage'
+              - 'datasync:DescribeStorageSystem'
+              - 'datasync:DescribeLocationAzureBlob'
+              - 'datasync:ListTagsForResource'
+              - 'datasync:ListTasks'
+              - 'datasync:DescribeLocationHdfs'
+              - 'datasync:DescribeLocationFsxLustre'
+              - 'datasync:ListDiscoveryJobs'
+              - 'datasync:DescribeLocationNfs'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: RESILIENCEHUB
+            Action:
+              - 'resiliencehub:ListAppAssessments'
+              - 'resiliencehub:DescribeAppAssessment'
+              - 'resiliencehub:ListAlarmRecommendations'
+              - 'resiliencehub:ListAppAssessmentComplianceDrifts'
+              - 'resiliencehub:ListAppAssessmentResourceDrifts'
+              - 'resiliencehub:ListAppComponentCompliances'
+              - 'resiliencehub:ListAppComponentRecommendations'
+              - 'resiliencehub:ListSopRecommendations'
+              - 'resiliencehub:ListTestRecommendations'
+              - 'resiliencehub:ListApps'
+              - 'resiliencehub:DescribeApp'
+              - 'resiliencehub:DescribeDraftAppVersionResourcesImportStatus'
+              - 'resiliencehub:DescribeResourceGroupingRecommendationTask'
+              - 'resiliencehub:ListAppVersions'
+              - 'resiliencehub:DescribeAppVersion'
+              - 'resiliencehub:DescribeAppVersionResource'
+              - 'resiliencehub:DescribeAppVersionResourcesResolutionStatus'
+              - 'resiliencehub:DescribeAppVersionTemplate'
+              - 'resiliencehub:ListAppInputSources'
+              - 'resiliencehub:ListAppVersionAppComponents'
+              - 'resiliencehub:ListAppVersionResourceMappings'
+              - 'resiliencehub:ListAppVersionResources'
+              - 'resiliencehub:ListUnsupportedAppVersionResources'
+              - 'resiliencehub:ListRecommendationTemplates'
+              - 'resiliencehub:ListResiliencyPolicies'
+              - 'resiliencehub:ListResourceGroupingRecommendations'
+              - 'resiliencehub:ListTagsForResource'
+              - 'resiliencehub:ListSuggestedResiliencyPolicies'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: STEPFUNCTIONS
+            Action:
+              - 'states:GetActivityTask'
+              - 'states:ListActivities'
+              - 'states:DescribeExecution'
+              - 'states:GetExecutionHistory'
+              - 'states:ListExecutions'
+              - 'states:DescribeMapRun'
+              - 'states:ListMapRuns'
+            Effect: Allow
+            Resource:
+              - '*'
+      Roles:
         - !Ref LaceworkCrossAccountAccessRole
   LaceworkCWSAuditPolicy20253:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName:  !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20253"
+      ManagedPolicyName: !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20253"
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Sid: IOT
             Action:
@@ -813,7 +906,7 @@ Resources:
               - 'detective:ListInvestigations'
               - 'detective:ListInvitations'
               - 'detective:BatchGetGraphMemberDatasources'
-              - 'detective:ListOrganizationAdminAccounts'
+              - 'detective:ListOrganizationAdminAccount'
             Effect: Allow
             Resource:
               - '*'
@@ -908,11 +1001,25 @@ Resources:
     Properties:
       ManagedPolicyName:  !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20254"
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Sid: SSM
             Action:
               - 'ssm:GetConnectionStatus'
+              - 'ssm:ListCommandInvocations'
+              - 'ssm:GetDocument'
+              - 'ssm:GetInventory'
+              - 'ssm:GetMaintenanceWindowExecutionTask'
+              - 'ssm:GetMaintenanceWindowTask'
+              - 'ssm:GetOpsItem'
+              - 'ssm:ListOpsItemEvents'
+              - 'ssm:ListOpsItemRelatedItems'
+              - 'ssm:GetOpsMetadata'
+              - 'ssm:GetParameter'
+              - 'ssm:GetParameterHistory'
+              - 'ssm:GetPatchBaseline'
+              - 'ssm:GetPatchBaselineForPatchGroup'
+              - 'ssm:GetResourcePolicies'
             Effect: Allow
             Resource:
               - '*'
@@ -945,6 +1052,28 @@ Resources:
               - 'waf:ListIPSets'
               - 'waf:GetIPSet'
               - 'waf:GetRuleGroup'
+              - 'waf:ListActivatedRulesInRuleGroup'
+              - 'waf:GetByteMatchSet'
+              - 'waf:ListByteMatchSets'
+              - 'waf:GetGeoMatchSet'
+              - 'waf:ListGeoMatchSets'
+              - 'waf:GetLoggingConfiguration'
+              - 'waf:ListLoggingConfigurations'
+              - 'waf:GetRateBasedRule'
+              - 'waf:GetRateBasedRuleManagedKeys'
+              - 'waf:ListRateBasedRules'
+              - 'waf:GetRegexMatchSet'
+              - 'waf:ListRegexMatchSets'
+              - 'waf:ListRegexPatternSets'
+              - 'waf:GetRule'
+              - 'waf:ListRules'
+              - 'waf:ListRuleGroups'
+              - 'waf:GetSizeConstraintSet'
+              - 'waf:ListSizeConstraintSets'
+              - 'waf:GetSqlInjectionMatchSet'
+              - 'waf:ListSqlInjectionMatchSets'
+              - 'waf:GetXssMatchSet'
+              - 'waf:ListXssMatchSets'
             Effect: Allow
             Resource:
               - '*'
@@ -957,6 +1086,188 @@ Resources:
               - 'wafv2:ListIPSets'
               - 'wafv2:ListManagedRuleSets'
               - 'wafv2:GetRuleGroup'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: APPRUNNER
+            Action:
+              - 'apprunner:ListServicesForAutoScalingConfiguration'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: APPSYNC
+            Action:
+              - 'appsync:GetApiAssociation'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: ATHENA
+            Action:
+              - 'athena:GetCalculationExecution'
+              - 'athena:GetCalculationExecutionCode'
+              - 'athena:GetCalculationExecutionStatus'
+              - 'athena:GetDataCatalog'
+              - 'athena:GetNamedQuery'
+              - 'athena:GetPreparedStatement'
+              - 'athena:GetQueryExecution'
+              - 'athena:GetQueryResults'
+              - 'athena:GetQueryRuntimeStatistics'
+              - 'athena:GetSession'
+              - 'athena:GetSessionStatus'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: CE
+            Action:
+              - 'ce:GetCommitmentPurchaseAnalysis'
+              - 'ce:ListCommitmentPurchaseAnalyses'
+              - 'ce:GetAnomalyMonitors'
+              - 'ce:ListTagsForResource'
+              - 'ce:GetAnomalySubscriptions'
+              - 'ce:ListCostAllocationTagBackfillHistory'
+              - 'ce:ListCostAllocationTags'
+              - 'ce:DescribeCostCategoryDefinition'
+              - 'ce:ListCostCategoryDefinitions'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: CLOUDFORMATION
+            Action:
+              - 'cloudformation:DescribeAccountLimits'
+              - 'cloudformation:DescribeChangeSet'
+              - 'cloudformation:ListChangeSets'
+              - 'cloudformation:DescribeChangeSetHooks'
+              - 'cloudformation:ListExports'
+              - 'cloudformation:ListImports'
+              - 'cloudformation:DescribePublisher'
+              - 'cloudformation:DetectStackDrift'
+              - 'cloudformation:GetTemplateSummary'
+              - 'cloudformation:DetectStackSetDrift'
+              - 'cloudformation:DescribeType'
+              - 'cloudformation:ListTypes'
+              - 'cloudformation:DescribeTypeRegistration'
+              - 'cloudformation:ListTypeRegistrations'
+              - 'cloudformation:ListTypeVersions'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: ELASTICBEANSTALK
+            Action:
+              - 'elasticbeanstalk:ListAvailableSolutionStacks'
+              - 'elasticbeanstalk:RetrieveEnvironmentInfo'
+              - 'elasticbeanstalk:ListPlatformBranches'
+              - 'elasticbeanstalk:ListPlatformVersions'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: MEDIATAILOR
+            Action:
+              - 'mediatailor:ListAlerts'
+              - 'mediatailor:DescribeChannel'
+              - 'mediatailor:DescribeProgram'
+              - 'mediatailor:GetChannelPolicy'
+              - 'mediatailor:GetChannelSchedule'
+              - 'mediatailor:ListChannels'
+              - 'mediatailor:DescribeLiveSource'
+              - 'mediatailor:ListLiveSources'
+              - 'mediatailor:GetPlaybackConfiguration'
+              - 'mediatailor:ListPlaybackConfigurations'
+              - 'mediatailor:GetPrefetchSchedule'
+              - 'mediatailor:ListPrefetchSchedules'
+              - 'mediatailor:DescribeSourceLocation'
+              - 'mediatailor:ListSourceLocations'
+              - 'mediatailor:DescribeVodSource'
+              - 'mediatailor:ListVodSources'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: NETWORKFIREWALL
+            Action:
+              - 'network-firewall:ListTagsForResource'
+              - 'network-firewall:DescribeRuleGroupMetadata'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: RESOURCEEXPLORER2
+            Action:
+              - 'resource-explorer-2:ListIndexes'
+              - 'resource-explorer-2:ListManagedViews'
+              - 'resource-explorer-2:GetManagedView'
+              - 'resource-explorer-2:ListSupportedResourceTypes'
+              - 'resource-explorer-2:ListViews'
+              - 'resource-explorer-2:GetView'
+              - 'resource-explorer-2:Search'
+              - 'resource-explorer-2:GetAccountLevelServiceConfiguration'
+              - 'resource-explorer-2:GetDefaultView'
+              - 'resource-explorer-2:GetIndex'
+              - 'resource-explorer-2:ListTagsForResource'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: ROUTE53DOMAINS
+            Action:
+              - 'route53domains:ViewBilling'
+              - 'route53domains:CheckDomainAvailability'
+              - 'route53domains:CheckDomainTransferability'
+              - 'route53domains:ListPrices'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Sid: SERVICEDISCOVERY
+            Action:
+              - 'servicediscovery:GetInstance'
+              - 'servicediscovery:ListInstances'
+              - 'servicediscovery:GetNamespace'
+              - 'servicediscovery:ListNamespaces'
+              - 'servicediscovery:ListTagsForResource'
+              - 'servicediscovery:GetOperation'
+              - 'servicediscovery:ListOperations'
+              - 'servicediscovery:GetService'
+              - 'servicediscovery:GetServiceAttributes'
+              - 'servicediscovery:ListServices'
+            Effect: Allow
+            Resource:
+              - '*'
+      Roles:
+        - !Ref LaceworkCrossAccountAccessRole
+  LaceworkCWSAuditPolicy20255:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName:  !Sub "LaceworkCWSAuditPolicy-${AWS::AccountId}-20255"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: FORECAST
+            Action:
+              - 'forecast:DescribeDataset'
+              - 'forecast:GetAccuracyMetrics'
+              - 'forecast:DescribeExplainability'
+              - 'forecast:ListForecastExportJobs'
+              - 'forecast:ListForecasts'
+              - 'forecast:DescribeForecast'
+              - 'forecast:DescribeMonitor'
+              - 'forecast:ListMonitorEvaluations'
+              - 'forecast:DescribePredictor'
+              - 'forecast:ListWhatIfForecasts'
+              - 'forecast:DescribeDatasetImportJob'
+              - 'forecast:ListDatasetGroups'
+              - 'forecast:ListPredictorBacktestExportJobs'
+              - 'forecast:DescribeExplainabilityExport'
+              - 'forecast:ListMonitors'
+              - 'forecast:DescribePredictorBacktestExportJob'
+              - 'forecast:DescribeDatasetGroup'
+              - 'forecast:ListWhatIfAnalyses'
+              - 'forecast:DescribeWhatIfForecastExport'
+              - 'forecast:DescribeAutoPredictor'
+              - 'forecast:ListExplainabilities'
+              - 'forecast:DescribeForecastExportJob'
+              - 'forecast:DescribeWhatIfForecast'
+              - 'forecast:DescribeWhatIfAnalysis'
+              - 'forecast:ListDatasetImportJobs'
+              - 'forecast:ListExplainabilityExports'
+              - 'forecast:ListWhatIfForecastExports'
+              - 'forecast:ListTagsForResource'
+              - 'forecast:ListPredictors'
             Effect: Allow
             Resource:
               - '*'
@@ -991,4 +1302,4 @@ Outputs:
   TemplateVersion:
     Description: Template version
     Value: "1.0"
-
+    
