@@ -102,7 +102,7 @@ Resources:
       SourceBucket: !Ref 'S3BucketName'
       Prefix: !Ref 'S3KeyPrefix'
       Objects:
-        - '/lambda/LaceworkIntegrationSetup1.1.4.zip'
+        - '/lambda/LaceworkIntegrationSetup1.1.5.zip'
 
   CopyZipsRole:
     Type: AWS::IAM::Role
@@ -201,7 +201,7 @@ Resources:
     Properties:
       Code:
         S3Bucket: !Ref LambdaZipsBucket
-        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup1.1.4.zip']]
+        S3Key: !Join ['', [!Ref 'S3KeyPrefix', '/lambda/LaceworkIntegrationSetup1.1.5.zip']]
       Handler: lw_integration_lambda_function.handler
       Runtime: python3.11
       Timeout: 900

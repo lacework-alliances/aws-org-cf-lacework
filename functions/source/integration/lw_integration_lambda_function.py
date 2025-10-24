@@ -10,7 +10,8 @@ import requests
 from botocore.exceptions import ClientError
 from laceworksdk import LaceworkClient, ApiError
 
-HONEY_API_KEY = "$HONEY_KEY"
+import urllib.parse
+
 DATASET = "$DATASET"
 BUILD_VERSION = "$BUILD"
 
@@ -55,6 +56,8 @@ def on_create(lacework_client, role_arn, external_id, account_id, event, context
     lw_account = os.environ['LW_ACCOUNT']
 
     logger.info('Started creating AWS Config integration for account ID %s %s %s', account_id, role_arn, external_id)
+    send_metrics_event(lacework_client, DATASET, BUILD_VERSION, lw_account, "create started",
+                         "", get_lacework_environment_variables())
 
     try:
         logger.info('Giving time for the cross account role to be created')
@@ -75,6 +78,8 @@ def on_create(lacework_client, role_arn, external_id, account_id, event, context
 
         logger.info('Finished creating AWS Config integration')
 
+        send_metrics_event(lacework_client, DATASET, BUILD_VERSION, lw_account, "create complete",
+                             "", get_lacework_environment_variables())
 
         # send response back to cfn template that was created by the new stack
         send_cfn_success(event, context)
@@ -92,7 +97,8 @@ def on_update(lacework_client, role_arn, external_id, account_id, event, context
     old_role_arn = event['OldResourceProperties']['RoleArn']
     old_external_id = event['OldResourceProperties']['ExternalId']
     lw_account = os.environ['LW_ACCOUNT']
-    
+    send_metrics_event(lacework_client, DATASET, BUILD_VERSION, lw_account, "update started",
+                         "", get_lacework_environment_variables())
 
     integration = find_integration(lacework_client, old_role_arn, old_external_id)
 
@@ -115,8 +121,8 @@ def on_update(lacework_client, role_arn, external_id, account_id, event, context
             )
 
             logger.info('Finished updating AWS Config integration %s', integration['intgGuid'])
-           
-            
+            send_metrics_event(lacework_client, DATASET, BUILD_VERSION, lw_account, "update complete",
+                                 "", get_lacework_environment_variables())
             # send response back to cfn template that was created by the new stack
             send_cfn_success(event, context)
         except Exception as error:
@@ -129,7 +135,8 @@ def on_update(lacework_client, role_arn, external_id, account_id, event, context
 def on_delete(lacework_client, role_arn, external_id, event, context):
     integration = find_integration(lacework_client, role_arn, external_id)
     lw_account = os.environ['LW_ACCOUNT']
-    
+    send_metrics_event(lacework_client, DATASET, BUILD_VERSION, lw_account, "delete started",
+                         "", get_lacework_environment_variables())
     if integration:
         logger.info('Started deleting AWS Config integration %s', integration['intgGuid'])
 
@@ -137,7 +144,8 @@ def on_delete(lacework_client, role_arn, external_id, event, context):
             lacework_client.cloud_accounts.delete(guid=integration['intgGuid'])
 
             logger.info('Finished deleting AWS Config integration %s', integration['intgGuid'])
-            
+            send_metrics_event(lacework_client, DATASET, BUILD_VERSION, lw_account, "delete complete",
+                                 "", get_lacework_environment_variables())
             send_cfn_success(event, context)
         except Exception as error:
             send_cfn_failure(event, context, 'Failure during integration deletion', error)
@@ -224,3 +232,45 @@ def get_lacework_client(secret_arn, event, context):
 
     return lw_client
 
+
+def send_metrics_event(lw_client, dataset, version, account, event, subaccount="000000", eventdata="{}"):
+    logger.info("Call /api/v2/telemetry/OtelMetrics to send events.")
+
+    try:
+        payload = {
+            "account": str(account),
+            "sub-account": str(subaccount),
+            "tech-partner": "AWS",
+            "integration-name": "aws-org-cf-lacework",
+            "version": str(version),
+            "service": "AWS CloudFormation",
+            "install-method": "cloudformation",
+            "function": "lw_integration_lambda_function.py",
+            "event": str(event),
+            "event-data": eventdata,
+            "sample_rate_100": True,
+            "telemetry_source": "external",
+            "telemetry_type":"customer"
+        }
+        logger.info('Generate payload : {}'.format(payload))
+        params = {
+            "dataset": dataset
+        }
+        encoded_params = urllib.parse.urlencode(params)
+        resp = lw_client._session.post(
+            "/api/v2/telemetry/OtelMetrics?{}".format(encoded_params),
+            json=payload,
+        )
+        resp.raise_for_status()
+        logger.info("LW API server response {} {}".format(resp, resp.content))
+    except Exception as e:
+        logger.warning("Get error sending events to metrics API: {}.".format(e))
+
+
+def get_lacework_environment_variables():
+    env_vars = {}
+    for key, value in os.environ.items():
+        if key.startswith("lacework"):
+            env_vars[key] = value
+
+    return json.dumps(env_vars)
