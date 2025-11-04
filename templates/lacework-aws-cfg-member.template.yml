@@ -205,12 +205,6 @@ Resources:
             Effect: Allow
             Resource:
               - '*'
-          - Sid: STATES
-            Action:
-              - 'states:ListTagsForResource'
-            Effect: Allow
-            Resource:
-              - '*'
           - Sid: SES
             Action:
               - 'ses:ListContactLists'
@@ -233,6 +227,10 @@ Resources:
               - 'ses:ListSuppressedDestinations'
               - 'ses:GetSuppressedDestination'
               - 'ses:ListTagsForResource'
+              - 'ses:GetExportJob'
+              - 'ses:GetMultiRegionEndpoint'
+              - 'ses:ListExportJobs'
+              - 'ses:ListMultiRegionEndpoints'
             Effect: Allow
             Resource:
               - '*'
@@ -334,6 +332,7 @@ Resources:
             Action:
               - 'appstream:Describe*'
               - 'appstream:List*'
+              - 'appstream:ListTagsForResource'
             Effect: Allow
             Resource:
               - '*'
@@ -770,6 +769,7 @@ Resources:
               - 'states:ListExecutions'
               - 'states:DescribeMapRun'
               - 'states:ListMapRuns'
+              - 'states:ListTagsForResource'
             Effect: Allow
             Resource:
               - '*'
@@ -1271,6 +1271,23 @@ Resources:
             Effect: Allow
             Resource:
               - '*'
+          - Sid: NOTIFICATIONS
+            Action:
+              - 'notifications:ListEventRules'
+              - 'notifications:ListManagedNotificationChildEvents'
+              - 'notifications:ListOrganizationalUnits'
+              - 'notifications:ListMemberAccounts'
+              - 'notifications:ListNotificationConfigurations'
+              - 'notifications:ListManagedNotificationConfiguration'
+              - 'notifications:ListManagedNotificationEvents'
+              - 'notifications:ListTagsForResource'
+              - 'notifications:ListManagedNotificationChannelAssociations'
+              - 'notifications:ListNotificationEvents'
+              - 'notifications:ListChannels'
+              - 'notifications:ListNotificationHubs'
+            Effect: Allow
+            Resource:
+              - '*'
       Roles:
         - !Ref LaceworkCrossAccountAccessRole
   LaceworkSnsCustomResource:
@@ -1303,3 +1320,4 @@ Outputs:
     Description: Template version
     Value: "1.0"
     
+
