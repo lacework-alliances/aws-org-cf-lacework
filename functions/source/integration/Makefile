@@ -1,6 +1,6 @@
 PROJECT = LaceworkIntegrationSetup
 DIR_NAME = integration
-FUNCTION = $(PROJECT)1.1.5
+FUNCTION = $(PROJECT)1.1.6
 DIST_DIR ?= "$(BASE)"/functions/packages/$(DIR_NAME)
 APM_DATASET = $(DATASET)
 

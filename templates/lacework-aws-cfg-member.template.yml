@@ -1285,6 +1285,12 @@ Resources:
             Effect: Allow
             Resource:
               - '*'
+          - Sid: KEYSPACES
+            Action:
+              - 'cassandra:Select'
+            Effect: Allow
+            Resource:
+              - '*'
       Roles:
         - !Ref LaceworkCrossAccountAccessRole
   LaceworkSnsCustomResource:
@@ -1316,6 +1322,6 @@ Outputs:
   TemplateVersion:
     Description: Template version
     Value: "1.0"
-    
+
 
 
