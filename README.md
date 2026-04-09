@@ -1,3 +1,13 @@
+# This repo is deprecated. Please use FortiCNAPP console to access the FortiCNAPP AWS organization-level Configuration integration CloudFormation template:
+
+1. Log in to the FortiCNAPP console.
+2. Go to Settings > Integrations > Cloud accounts.
+3. Click + Add New.
+4. Click Amazon Web Services and select CloudFormation.
+Click Next.
+Select Configuration (Organization) and click Run CloudFormation Template. If you are already logged in to your AWS account, this redirects you to the Create stack page. The template populates the Amazon S3 template URL for you.
+
+
 # Lacework FortiCNAPP AWS Organization Integration
 
 ![Fortinet-logo-rgb-black-red](https://github.com/user-attachments/assets/9e4ce8af-8090-40e2-a1e5-b6bf8ea157ac)
